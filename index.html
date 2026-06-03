@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Instech — Site Garudafood</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#1B2B4B;--navy2:#243659;
+  --steel:#4A7B8C;--steel2:#5A8F9F;--steel3:#C8DDE2;
+  --cream:#F5F0E8;--cream2:#EDE8DF;--cream3:#DDD6CA;
+  --white:#FFFFFF;
+  --text1:#1B2B4B;--text2:#4A6080;--text3:#8098B0;
+  --success:#2E7D5E;--danger:#8B2E2E;
+  --r-sm:6px;--r-md:10px;--r-lg:14px;
+  --sb-w:220px;--bot-nav:60px;
+}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text1);}
+
+/* ══ APP SHELL ══ */
+.app{display:flex;height:100vh;overflow:hidden;}
+
+/* ══ SIDEBAR (desktop) ══ */
+.sidebar{width:var(--sb-w);background:var(--navy);flex-shrink:0;display:flex;flex-direction:column;transition:width .25s,opacity .25s;overflow:hidden;z-index:50;}
+.sidebar.collapsed{width:0;opacity:0;pointer-events:none;}
+.sb-brand{padding:18px 16px 14px;border-bottom:0.5px solid rgba(255,255,255,.08);white-space:nowrap;}
+.sb-logo{font-size:15px;font-weight:600;color:#fff;display:flex;align-items:center;gap:6px;}
+.sb-sub{font-size:9px;color:rgba(255,255,255,.35);margin-top:3px;letter-spacing:.06em;text-transform:uppercase;}
+.sb-nav{flex:1;padding:10px 8px;overflow-y:auto;}
+.sb-sec-lbl{font-size:9px;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:.08em;padding:10px 8px 4px;display:flex;align-items:center;gap:6px;}
+.sb-sec-lbl::after{content:'';flex:1;height:0.5px;background:rgba(255,255,255,.07);}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r-sm);cursor:pointer;font-size:12px;color:rgba(255,255,255,.55);transition:all .15s;margin-bottom:2px;white-space:nowrap;border:none;background:transparent;width:100%;font-family:'DM Sans',sans-serif;position:relative;text-align:left;}
+.nav-btn:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.9);}
+.nav-btn.active{background:rgba(255,255,255,.1);color:#fff;font-weight:500;}
+.nav-btn.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:20px;background:var(--steel2);border-radius:0 3px 3px 0;}
+.nav-btn svg{flex-shrink:0;opacity:.55;}
+.nav-btn.active svg{opacity:1;}
+.sb-footer{padding:12px 8px;border-top:0.5px solid rgba(255,255,255,.07);}
+.sb-site-lbl{font-size:10px;color:rgba(255,255,255,.28);padding:4px 10px;display:flex;align-items:center;gap:5px;}
+
+/* ══ MAIN ══ */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;}
+
+/* ══ TOPBAR ══ */
+.topbar{background:var(--white);border-bottom:1px solid var(--cream3);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:40;}
+.tb-left{display:flex;align-items:center;gap:10px;}
+.tb-toggle{background:none;border:none;padding:6px;cursor:pointer;color:var(--text2);display:flex;align-items:center;border-radius:var(--r-sm);transition:all .15s;}
+.tb-toggle:hover{background:var(--cream);color:var(--navy);}
+.tb-titles .tb-title{font-size:15px;font-weight:600;color:var(--navy);}
+.tb-titles .tb-sub{font-size:11px;color:var(--text3);margin-top:1px;}
+.tb-right{display:flex;align-items:center;gap:8px;}
+.tb-date{font-size:11px;color:var(--text3);background:var(--cream);padding:5px 10px;border-radius:var(--r-sm);border:1px solid var(--cream3);}
+.tb-badge{font-size:10px;padding:4px 10px;border-radius:20px;background:var(--steel3);color:var(--steel);font-weight:500;}
+
+/* ══ CONTENT ══ */
+.content-wrap{flex:1;overflow-y:auto;padding:16px;}
+.page{display:none;}.page.active{display:block;}
+
+/* ══ METRIC CARDS ══ */
+.metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.mc{background:var(--white);border-radius:var(--r-md);padding:12px 14px;border:1px solid var(--cream3);border-left:3px solid var(--steel);}
+.mc-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
+.mc-val{font-size:20px;font-weight:600;color:var(--navy);line-height:1;}
+.mc-sub{font-size:10px;color:var(--text3);margin-top:3px;}
+
+/* ══ SECTION CARD ══ */
+.sc{background:var(--white);border-radius:var(--r-lg);border:1px solid var(--cream3);margin-bottom:12px;overflow:hidden;}
+.sc-head{padding:12px 14px;border-bottom:1px solid var(--cream2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.sc-title{font-size:13px;font-weight:600;color:var(--navy);}
+.sc-sub{font-size:11px;color:var(--text3);margin-top:1px;}
+.sc-body{padding:12px 14px;}
+
+/* ══ BUTTONS ══ */
+.btn{padding:7px 14px;border-radius:var(--r-sm);font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.btn-primary{background:var(--navy);color:#fff;}.btn-primary:hover{background:var(--navy2);}
+.btn-outline{background:transparent;border:1px solid var(--cream3);color:var(--text2);}.btn-outline:hover{background:var(--cream);}
+.btn-sm{padding:5px 10px;font-size:11px;}
+
+/* ══ TABS ══ */
+.tab-row{display:flex;gap:3px;background:var(--cream2);border-radius:var(--r-sm);padding:3px;}
+.tab{flex:1;padding:6px 10px;border-radius:5px;cursor:pointer;font-size:12px;color:var(--text2);border:none;background:transparent;font-family:'DM Sans',sans-serif;transition:all .15s;text-align:center;}
+.tab.active{background:var(--white);color:var(--navy);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.08);}
+
+/* ══ TABLE ══ */
+.dt{width:100%;border-collapse:collapse;font-size:12px;}
+.dt th{text-align:left;padding:8px 10px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--cream3);}
+.dt td{padding:10px 10px;border-bottom:1px solid var(--cream2);color:var(--text1);vertical-align:middle;}
+.dt tr:last-child td{border-bottom:none;}
+.dt tr:hover td{background:var(--cream);}
+.in-val{color:var(--success);font-weight:500;}
+.out-val{color:var(--danger);font-weight:500;}
+.net-pos{color:var(--navy);font-weight:600;}
+.net-neg{color:var(--danger);font-weight:600;}
+.muted{color:var(--text3);}
+
+/* ══ BIOPOND — DETAIL ══ */
+.bp-filter-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
+.bpf{padding:4px 12px;border:1px solid var(--cream3);background:var(--cream);border-radius:20px;cursor:pointer;font-size:11px;color:var(--text2);font-family:'DM Sans',sans-serif;transition:all .15s;}
+.bpf.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+/* Baris rak dengan label di kiri */
+.bp-rows-wrap{display:flex;flex-direction:column;gap:6px;}
+.bp-row-group{display:flex;align-items:flex-start;gap:8px;}
+.bp-row-lbl{width:28px;flex-shrink:0;font-size:10px;font-weight:600;color:var(--text3);padding-top:10px;text-align:right;}
+.bp-row-cards{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;flex:1;}
+
+/* Kartu rak */
+.rc{border-radius:var(--r-md);cursor:pointer;transition:all .15s;overflow:hidden;border:1px solid transparent;}
+.rc:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(27,43,75,.18);}
+.rc:active{transform:translateY(0);}
+.rc-bibit  {background:#EAF3DE;border-color:#97C459;}
+.rc-tumbuh {background:#E6F1FB;border-color:#85B7EB;}
+.rc-panen  {background:#FAEEDA;border-color:#EF9F27;}
+.rc-harvest{background:#FAECE7;border-color:#F0997B;}
+
+/* Header kartu: nama R + H di kiri, skop di kanan */
+.rc-top{padding:7px 8px 5px;display:flex;justify-content:space-between;align-items:flex-start;}
+.rc-id{font-size:11px;font-weight:700;line-height:1;}
+.rc-hl{font-size:9px;margin-top:1px;font-weight:500;}
+.rc-id-bibit{color:#1A3D08;}.rc-id-tumbuh{color:#08305C;}.rc-id-panen{color:#4A2600;}.rc-id-harvest{color:#4A1008;}
+.rc-hl-bibit{color:#3B6D11;}.rc-hl-tumbuh{color:#185FA5;}.rc-hl-panen{color:#854F0B;}.rc-hl-harvest{color:#993C1D;}
+.rc-right{text-align:right;}
+.rc-skop{font-size:10px;font-weight:700;line-height:1;}
+.rc-kg{font-size:8px;margin-top:1px;}
+.rc-skop-bibit{color:#1A3D08;}.rc-skop-tumbuh{color:#08305C;}.rc-skop-panen{color:#4A2600;}.rc-skop-harvest{color:#4A1008;}
+.rc-kg-bibit{color:#3B6D11;}.rc-kg-tumbuh{color:#185FA5;}.rc-kg-panen{color:#854F0B;}.rc-kg-harvest{color:#993C1D;}
+
+/* Divider warna */
+.rc-div{height:0.5px;margin:0 7px;}
+.rc-div-bibit{background:#B8D88A;}.rc-div-tumbuh{background:#85B7EB;}.rc-div-panen{background:#EF9F27;}.rc-div-harvest{background:#F0997B;}
+
+/* Badge pangkas */
+.rc-bottom{padding:4px 6px 5px;}
+.rc-pgbadge{border-radius:4px;padding:3px 5px;font-size:8px;font-weight:600;display:inline-flex;align-items:center;gap:2px;width:100%;}
+.rcpg-today-bibit  {background:#2E5A0A;color:#EAF3DE;}
+.rcpg-today-tumbuh {background:#124E87;color:#E6F1FB;}
+.rcpg-today-panen  {background:#6B3E08;color:#FAEEDA;}
+.rcpg-today-harvest{background:#7A2E18;color:#FAECE7;}
+.rcpg-soon-bibit   {background:rgba(99,153,34,.15);color:#27500A;}
+.rcpg-soon-tumbuh  {background:rgba(55,138,221,.13);color:#185FA5;}
+.rcpg-soon-panen   {background:rgba(186,117,23,.15);color:#854F0B;}
+.rcpg-soon-harvest {background:rgba(216,90,48,.13);color:#993C1D;}
+.rcpg-none         {background:rgba(27,43,75,.05);color:var(--text3);}
+
+/* ══ LEGENDA ══ */
+.leg-row{display:flex;flex-wrap:wrap;gap:8px;font-size:10px;color:var(--text2);margin-bottom:10px;}
+.leg{display:flex;align-items:center;gap:4px;}
+.lb{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+
+/* ══ MODAL ══ */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(27,43,75,.48);z-index:400;align-items:flex-end;justify-content:center;}
+.modal-ov.open{display:flex;}
+.modal{background:var(--white);border-radius:var(--r-lg) var(--r-lg) 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;box-shadow:0 -8px 30px rgba(27,43,75,.2);}
+.modal-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--cream3);position:sticky;top:0;background:var(--white);z-index:1;}
+.modal-pill{width:36px;height:4px;background:var(--cream3);border-radius:2px;margin:8px auto 0;display:block;}
+.modal-title{font-size:14px;font-weight:600;color:var(--navy);}
+.modal-x{background:none;border:none;cursor:pointer;font-size:20px;color:var(--text3);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-sm);}
+.m-meta{padding:9px 16px;background:var(--cream);border-bottom:1px solid var(--cream3);font-size:11px;color:var(--text2);display:flex;gap:12px;flex-wrap:wrap;}
+.m-meta b{color:var(--navy);}
+.m-sec{padding:12px 16px;border-bottom:1px solid var(--cream2);}
+.m-sec:last-of-type{border-bottom:none;}
+.m-sec-t{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
+.ig{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.ib{background:var(--cream);border-radius:var(--r-sm);padding:8px 10px;}
+.ib label{font-size:10px;color:var(--text3);text-transform:uppercase;display:block;margin-bottom:2px;}
+.ib span{font-size:12px;font-weight:500;color:var(--navy);}
+.pk-big{display:flex;align-items:baseline;gap:5px;margin-bottom:3px;}
+.pk-num{font-size:22px;font-weight:600;color:var(--navy);}
+.pk-u{font-size:11px;color:var(--text3);}
+.pk-sub{font-size:11px;color:var(--text2);margin-bottom:6px;}
+.pk-bw{height:5px;background:var(--cream2);border-radius:3px;overflow:hidden;margin-bottom:4px;}
+.pk-b{height:100%;border-radius:3px;background:var(--steel);}
+.pgt{display:flex;gap:4px;margin-top:8px;}
+.pgi{flex:1;text-align:center;padding:7px 3px;border-radius:var(--r-sm);font-size:10px;}
+.pgi-done{background:#EAF3DE;color:#27500A;}
+.pgi-today{background:#FAEEDA;color:#633806;font-weight:500;}
+.pgi-next{background:var(--cream2);color:var(--text3);}
+.pgiday{font-size:12px;font-weight:600;display:block;margin-bottom:1px;}
+.mal{display:flex;align-items:center;gap:5px;padding:6px 8px;border-radius:var(--r-sm);font-size:11px;margin-top:8px;}
+.mal-p{background:#FEF3E2;color:#854F0B;}.mal-ok{background:#EAF3DE;color:#27500A;}
+.modal-acts{padding:11px 16px;display:flex;gap:7px;flex-wrap:wrap;border-top:1px solid var(--cream3);}
+.modal-acts button{font-size:12px;}
+
+/* ══ KALENDER ══ */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.cal-title{font-size:13px;font-weight:600;color:var(--navy);}
+.cal-nav{display:flex;gap:4px;}
+.cal-nav button{background:none;border:1px solid var(--cream3);border-radius:var(--r-sm);padding:4px 8px;cursor:pointer;font-size:12px;color:var(--text2);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;}
+.cal-day-lbl{font-size:10px;color:var(--text3);padding:4px 0;font-weight:500;}
+.cal-day{padding:6px 2px;border-radius:var(--r-sm);cursor:pointer;font-size:11px;color:var(--text2);transition:all .12s;position:relative;}
+.cal-day:hover{background:var(--cream2);}
+.cal-day.today{background:var(--navy);color:#fff;font-weight:600;}
+.cal-day.selected{background:var(--steel);color:#fff;font-weight:500;}
+.cal-day.has-data{font-weight:500;color:var(--navy);}
+.cal-day.has-data::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--steel);}
+.cal-day.empty{pointer-events:none;color:transparent;}
+
+/* ══ AKTIVITAS ══ */
+.act-item{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--cream2);}
+.act-item:last-child{border-bottom:none;}
+.act-left{display:flex;align-items:center;gap:9px;}
+.act-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.act-text{font-size:12px;color:var(--text1);}
+.act-badge{font-size:10px;color:var(--text3);background:var(--cream2);padding:2px 8px;border-radius:10px;}
+
+/* ══ BATCH PROGRESS ══ */
+.bt-row{display:flex;align-items:center;gap:7px;font-size:11px;margin-bottom:5px;}
+.bt-lbl{width:26px;color:var(--text3);font-weight:500;flex-shrink:0;}
+.bt-bw{flex:1;background:var(--cream2);border-radius:3px;height:18px;overflow:hidden;}
+.bt-b{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:7px;font-size:10px;font-weight:500;}
+.bt-m{width:68px;text-align:right;color:var(--text3);font-size:10px;}
+
+/* ══ CHART ══ */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.chart-box{background:var(--white);border-radius:var(--r-lg);border:1px solid var(--cream3);padding:13px 14px;}
+.chart-box.full{grid-column:1/-1;}
+.chart-title{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:2px;}
+.chart-sub{font-size:10px;color:var(--text3);margin-bottom:10px;}
+.cleg{display:flex;flex-wrap:wrap;gap:8px;font-size:10px;color:var(--text2);margin-bottom:8px;}
+.cleg span{display:flex;align-items:center;gap:3px;}
+.cleg-dot{width:8px;height:8px;border-radius:2px;display:inline-block;}
+
+/* ══ MINI BARS (overview) ══ */
+.mini-bars{display:flex;align-items:flex-end;gap:3px;height:44px;}
+.mbar{flex:1;border-radius:2px 2px 0 0;min-height:3px;}
+
+/* ══ BOTTOM NAV (mobile) ══ */
+.bot-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--bot-nav);background:var(--white);border-top:1px solid var(--cream3);z-index:50;flex-direction:row;}
+.bot-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10px;color:var(--text3);transition:all .15s;padding:6px 4px;}
+.bot-nav-item.active{color:var(--navy);}
+.bot-nav-item svg{opacity:.45;}
+.bot-nav-item.active svg{opacity:1;}
+.bot-nav-dot{width:4px;height:4px;border-radius:50%;background:var(--steel);display:none;}
+.bot-nav-item.active .bot-nav-dot{display:block;}
+
+/* ══ MOBILE RESPONSIVE ══ */
+@media(max-width:640px){
+  html,body{overflow:auto;}
+  .app{height:auto;min-height:100vh;flex-direction:column;}
+  .sidebar{display:none !important;}
+  .main{height:100vh;}
+  .tb-toggle{display:none;}
+  .tb-date{display:none;}
+  .tb-badge{font-size:9px;padding:3px 8px;}
+  .content-wrap{padding:12px 12px calc(var(--bot-nav) + 12px);}
+  .bot-nav{display:flex;}
+  .metric-grid{grid-template-columns:repeat(2,1fr);}
+  .chart-grid{grid-template-columns:1fr;}
+  .chart-box.full{grid-column:1;}
+  .overview-two-col{grid-template-columns:1fr !important;}
+  /* Biopond mobile: 3 kolom */
+  .bp-row-cards{grid-template-columns:repeat(3,1fr);}
+  .bp-rows-wrap{gap:5px;}
+  .bp-row-lbl{width:22px;font-size:9px;}
+  .rc-id{font-size:10px;}
+  .rc-hl{font-size:8px;}
+  .rc-skop{font-size:9px;}
+  .rc-kg{font-size:7px;}
+  .col-lbl-desktop{display:none !important;}
+  .col-lbl-mobile{display:grid !important;}
+  .modal{border-radius:var(--r-lg) var(--r-lg) 0 0;}
+  .tab{font-size:11px;padding:5px 8px;}
+}
+
+@media(min-width:641px) and (max-width:900px){
+  .metric-grid{grid-template-columns:repeat(3,1fr);}
+  .bp-row-cards{grid-template-columns:repeat(4,1fr);}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ── SIDEBAR (desktop) ── -->
+  <div class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2-8 2"/></svg>
+        Instech
+      </div>
+      <div class="sb-sub">Site Garudafood</div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-sec-lbl">Monitor</div>
+      <button class="nav-btn active" onclick="nav('overview',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Overview
+      </button>
+      <button class="nav-btn" onclick="nav('biopond',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+        Biopond
+      </button>
+      <button class="nav-btn" onclick="nav('produksi',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Produksi
+      </button>
+      <div class="sb-sec-lbl">Analisis</div>
+      <button class="nav-btn" onclick="nav('laporan',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Laporan
+      </button>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-site-lbl">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Garudafood Site
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-left">
+        <button class="tb-toggle" onclick="toggleSB()" title="Toggle sidebar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="tb-titles">
+          <div class="tb-title" id="tb-title">Overview</div>
+          <div class="tb-sub" id="tb-sub">Ringkasan operasional harian</div>
+        </div>
+      </div>
+      <div class="tb-right">
+        <span class="tb-date" id="tb-date">—</span>
+        <span class="tb-badge">● Aktif</span>
+      </div>
+    </div>
+
+    <div class="content-wrap">
+
+      <!-- ══ OVERVIEW ══ -->
+      <div class="page active" id="page-overview">
+        <div class="sc" style="margin-bottom:14px;">
+          <div class="sc-head">
+            <div><div class="sc-title">📷 Input Terbaru</div><div class="sc-sub">Live dari spreadsheet · foto bisa diklik</div></div>
+            <button class="btn btn-outline btn-sm" onclick="loadLive()">↻ Refresh</button>
+          </div>
+          <div class="sc-body" id="live-body" style="padding:6px 14px;">
+            <div style="padding:16px;text-align:center;color:var(--text3);font-size:12px;">Memuat data live…</div>
+          </div>
+        </div>
+        <div class="metric-grid">
+          <div class="mc"><div class="mc-lbl">Limbah masuk</div><div class="mc-val"><span id="m-limbah">–</span><span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px;">kg</span></div><div class="mc-sub">Hari ini</div></div>
+          <div class="mc"><div class="mc-lbl">Maggot keluar</div><div class="mc-val"><span id="m-maggot">–</span><span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px;">kg</span></div><div class="mc-sub">Hari ini</div></div>
+          <div class="mc"><div class="mc-lbl">Pupuk keluar</div><div class="mc-val"><span id="m-pupuk">–</span><span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px;">kg</span></div><div class="mc-sub">Hari ini</div></div>
+          <div class="mc"><div class="mc-lbl">Pond aktif</div><div class="mc-val">84<span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px;">/96</span></div><div class="mc-sub">Tumbuh+bibit</div></div>
+          <div class="mc"><div class="mc-lbl">Panen hari ini</div><div class="mc-val"><span id="m-panen">–</span><span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px;">entri</span></div><div class="mc-sub">Maggot</div></div>
+          <div class="mc"><div class="mc-lbl">Pangkas hari ini</div><div class="mc-val"><span id="m-pangkas">–</span></div><div class="mc-sub">entri</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" class="overview-two-col">
+          <div class="sc">
+            <div class="sc-head"><div><div class="sc-title">Produksi minggu ini</div><div class="sc-sub">Maggot & pupuk (kg)</div></div></div>
+            <div class="sc-body">
+              <div class="mini-bars">
+                <div class="mbar" style="height:55%;background:var(--steel3);"></div><div class="mbar" style="height:70%;background:var(--steel3);"></div><div class="mbar" style="height:80%;background:var(--steel);"></div><div class="mbar" style="height:65%;background:var(--steel3);"></div><div class="mbar" style="height:90%;background:var(--steel);"></div><div class="mbar" style="height:60%;background:var(--steel3);"></div><div class="mbar" style="height:75%;background:var(--steel);"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-top:4px;margin-bottom:10px;"><span>Sn</span><span>Sl</span><span>Rb</span><span>Km</span><span>Jm</span><span>Sb</span><span>Mg</span></div>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text2);">Total maggot</span><span style="font-weight:600;color:var(--navy);">294 kg</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text2);">Total pupuk</span><span style="font-weight:600;color:var(--navy);">665 kg</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text2);">Limbah masuk</span><span style="font-weight:600;color:var(--navy);">2,660 kg</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="sc">
+            <div class="sc-head"><div class="sc-title">Aktivitas hari ini</div></div>
+            <div class="sc-body" style="padding:0 14px;">
+              <div class="act-item"><div class="act-left"><span class="act-dot" style="background:#D85A30;"></span><span class="act-text"><b>B7</b> (R19–R21) — 12 pond dipanen</span></div><span class="act-badge">H16</span></div>
+              <div class="act-item"><div class="act-left"><span class="act-dot" style="background:#1D9E75;"></span><span class="act-text"><b>B8</b> (R22–R24) — bibit baru masuk</span></div><span class="act-badge">H9</span></div>
+              <div class="act-item"><div class="act-left"><span class="act-dot" style="background:var(--steel3);"></span><span class="act-text" style="color:var(--text3);">Tidak ada pangkas terjadwal</span></div><span class="act-badge">–</span></div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:12px;" class="sc">
+          <div class="sc-head">
+            <div><div class="sc-title">Status batch biopond</div><div class="sc-sub">Siklus H9–H16</div></div>
+            <button class="btn btn-outline btn-sm" onclick="nav('biopond',document.querySelectorAll('.nav-btn')[1])">Lihat semua →</button>
+          </div>
+          <div class="sc-body" id="ov-batch"></div>
+        </div>
+      </div>
+
+      <!-- ══ BIOPOND ══ -->
+      <div class="page" id="page-biopond">
+        <div class="metric-grid">
+          <div class="mc"><div class="mc-lbl">Total pond</div><div class="mc-val" id="bp-total">–</div><div class="mc-sub" id="bp-total-s">rak × 4 tkt</div></div>
+          <div class="mc"><div class="mc-lbl">Batch aktif</div><div class="mc-val" id="bp-batch">–</div><div class="mc-sub">berjalan</div></div>
+          <div class="mc"><div class="mc-lbl">Panen hari ini</div><div class="mc-val" id="bp-harv">–</div><div class="mc-sub" id="bp-harv-s">–</div></div>
+          <div class="mc"><div class="mc-lbl">Bibit baru</div><div class="mc-val" id="bp-bibit">–</div><div class="mc-sub" id="bp-bibit-s">–</div></div>
+          <div class="mc"><div class="mc-lbl">Tumbuh</div><div class="mc-val" id="bp-tumb">–</div><div class="mc-sub">pond aktif</div></div>
+          <div class="mc"><div class="mc-lbl">Pangkas</div><div class="mc-val" id="bp-pangk">–</div><div class="mc-sub">rak hari ini</div></div>
+        </div>
+
+        <div class="leg-row">
+          <span class="leg"><span class="lb" style="background:#EAF3DE;border:1px solid #97C459;"></span>Bibit (H9–10)</span>
+          <span class="leg"><span class="lb" style="background:#E6F1FB;border:1px solid #85B7EB;"></span>Tumbuh (H11–14)</span>
+          <span class="leg"><span class="lb" style="background:#FAEEDA;border:1px solid #EF9F27;"></span>Siap panen (H15)</span>
+          <span class="leg"><span class="lb" style="background:#FAECE7;border:1px solid #F0997B;"></span>Panen hari ini (H16)</span>
+        </div>
+
+        <div class="sc">
+          <div class="sc-head" style="flex-wrap:wrap;gap:8px;">
+            <div class="sc-title">Tampilan rak</div>
+            <div class="bp-filter-wrap" id="bpf" style="margin:0;"></div>
+          </div>
+          <div class="sc-body">
+            <!-- Label kolom header -->
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;" id="col-header">
+              <div style="width:28px;flex-shrink:0;"></div>
+              <div style="flex:1;display:grid;grid-template-columns:repeat(6,1fr);gap:5px;font-size:9px;color:var(--text3);text-align:center;" class="col-lbl-desktop">
+                <span>Kol 1</span><span>Kol 2</span><span>Kol 3</span><span>Kol 4</span><span>Kol 5</span><span>Kol 6</span>
+              </div>
+              <div style="flex:1;display:none;grid-template-columns:repeat(3,1fr);gap:5px;font-size:9px;color:var(--text3);text-align:center;" class="col-lbl-mobile">
+                <span>Kol 1–2</span><span>Kol 3–4</span><span>Kol 5–6</span>
+              </div>
+            </div>
+            <div class="bp-rows-wrap" id="rg"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PRODUKSI ══ -->
+      <div class="page" id="page-produksi">
+        <div class="tab-row" style="margin-bottom:12px;">
+          <button class="tab active" onclick="ptab('harian',this)">Harian</button>
+          <button class="tab" onclick="ptab('mingguan',this)">Mingguan</button>
+          <button class="tab" onclick="ptab('bulanan',this)">Bulanan</button>
+          <button class="tab" onclick="ptab('tahunan',this)">Tahunan</button>
+        </div>
+        <div class="sc" id="prod-cal-card">
+          <div class="sc-head"><div class="sc-title">Pilih Tanggal</div><div class="sc-sub" id="cal-selected-lbl">1 Juni 2026 (hari ini)</div></div>
+          <div class="sc-body"><div id="cal-wrap"></div></div>
+        </div>
+        <div id="prod-content"></div>
+      </div>
+
+      <!-- ══ LAPORAN ══ -->
+      <div class="page" id="page-laporan">
+        <div class="metric-grid">
+          <div class="mc"><div class="mc-lbl">Limbah YTD</div><div class="mc-val"><span id="l-limbah">–</span><span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px;">ton</span></div><div class="mc-sub">Tahun ini</div></div>
+          <div class="mc"><div class="mc-lbl">Maggot YTD</div><div class="mc-val"><span id="l-maggot">–</span><span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px;">ton</span></div><div class="mc-sub">Tahun ini</div></div>
+          <div class="mc"><div class="mc-lbl">Pupuk YTD</div><div class="mc-val"><span id="l-pupuk">–</span><span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px;">ton</span></div><div class="mc-sub">Tahun ini</div></div>
+          <div class="mc"><div class="mc-lbl">Efisiensi</div><div class="mc-val"><span id="l-efis">–</span><span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px;">%</span></div><div class="mc-sub">Maggot/limbah</div></div>
+          <div class="mc"><div class="mc-lbl">Rata-rata</div><div class="mc-val">42<span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px;">kg</span></div><div class="mc-sub">Maggot/hari</div></div>
+          <div class="mc"><div class="mc-lbl">Siklus selesai</div><div class="mc-val">47<span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px;">batch</span></div><div class="mc-sub">YTD</div></div>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-box">
+            <div class="chart-title">Efisiensi konversi</div>
+            <div class="chart-sub">% per bulan</div>
+            <div class="cleg"><span><span class="cleg-dot" style="background:#4A7B8C;"></span>Maggot %</span><span><span class="cleg-dot" style="background:#639922;"></span>Pupuk %</span></div>
+            <div style="position:relative;height:160px;"><canvas id="ch-efisiensi"></canvas></div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-title">Distribusi output YTD</div>
+            <div class="chart-sub">Proporsi produk</div>
+            <div class="cleg"><span><span class="cleg-dot" style="background:#378ADD;"></span>Maggot</span><span><span class="cleg-dot" style="background:#639922;"></span>Pupuk</span><span><span class="cleg-dot" style="background:#4A7B8C;"></span>Nutrien</span></div>
+            <div style="position:relative;height:160px;"><canvas id="ch-dist"></canvas></div>
+          </div>
+        </div>
+        <div class="sc" style="margin-bottom:12px;">
+          <div class="sc-head">
+            <div><div class="sc-title">Rekap produksi tahunan</div><div class="sc-sub">Jan–Jun 2026</div></div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-outline btn-sm" onclick="exportSim('pdf')">PDF</button>
+              <button class="btn btn-outline btn-sm" onclick="exportSim('excel')">Excel</button>
+            </div>
+          </div>
+          <div class="sc-body" style="padding:0 14px;overflow-x:auto;">
+            <table class="dt">
+              <thead><tr><th>Kategori</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>Mei</th><th>Jun</th><th>Total</th></tr></thead>
+              <tbody>
+                <tr><td>Limbah masuk (ton)</td><td>18.5</td><td>19.2</td><td>20.1</td><td>21.4</td><td>20.5</td><td>19.6</td><td><b style="color:var(--navy);">119.3</b></td></tr>
+                <tr><td>Maggot keluar (ton)</td><td>2.1</td><td>2.2</td><td>2.4</td><td>2.5</td><td>2.2</td><td>2.3</td><td><b style="color:var(--navy);">13.7</b></td></tr>
+                <tr><td>Pupuk keluar (ton)</td><td>4.6</td><td>4.8</td><td>5.1</td><td>5.3</td><td>4.9</td><td>5.0</td><td><b style="color:var(--navy);">29.7</b></td></tr>
+                <tr><td>Nutrien (kg)</td><td>850</td><td>880</td><td>920</td><td>960</td><td>900</td><td>950</td><td><b style="color:var(--navy);">5,460</b></td></tr>
+                <tr><td>Telur (kg)</td><td>40</td><td>42</td><td>44</td><td>46</td><td>41</td><td>43</td><td><b style="color:var(--navy);">256</b></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="sc">
+          <div class="sc-head">
+            <div><div class="sc-title">Riwayat batch</div><div class="sc-sub">Siklus panen terakhir</div></div>
+            <button class="btn btn-outline btn-sm" onclick="exportSim('batch')">Ekspor</button>
+          </div>
+          <div class="sc-body" style="padding:0 14px;overflow-x:auto;">
+            <table class="dt">
+              <thead><tr><th>Batch</th><th>Rak</th><th>Masuk</th><th>Panen</th><th>Bobot</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td><b>B7</b></td><td>R19–R21</td><td>17 Mei</td><td>1 Jun</td><td><span class="in-val">144 kg</span></td><td><span style="font-size:10px;padding:2px 7px;border-radius:10px;background:#EAF3DE;color:#27500A;font-weight:500;">Selesai</span></td></tr>
+                <tr><td><b>B6</b></td><td>R16–R18</td><td>16 Mei</td><td>31 Mei</td><td><span class="in-val">138 kg</span></td><td><span style="font-size:10px;padding:2px 7px;border-radius:10px;background:#EAF3DE;color:#27500A;font-weight:500;">Selesai</span></td></tr>
+                <tr><td><b>B5</b></td><td>R13–R15</td><td>15 Mei</td><td>30 Mei</td><td><span class="in-val">141 kg</span></td><td><span style="font-size:10px;padding:2px 7px;border-radius:10px;background:#EAF3DE;color:#27500A;font-weight:500;">Selesai</span></td></tr>
+                <tr><td><b>B8</b></td><td>R22–R24</td><td>1 Jun</td><td>–</td><td><span class="muted">–</span></td><td><span style="font-size:10px;padding:2px 7px;border-radius:10px;background:#E6F1FB;color:#0C447C;font-weight:500;">Berjalan</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div id="export-toast" style="display:none;position:fixed;bottom:24px;right:16px;background:var(--navy);color:#fff;padding:11px 16px;border-radius:var(--r-md);font-size:12px;box-shadow:0 4px 16px rgba(27,43,75,.3);z-index:500;align-items:center;gap:8px;">
+          ✓ <span id="export-msg">Mengekspor...</span>
+        </div>
+      </div>
+
+    </div><!-- end content-wrap -->
+  </div><!-- end main -->
+</div><!-- end app -->
+
+<!-- ── BOTTOM NAV (mobile) ── -->
+<nav class="bot-nav" id="bot-nav">
+  <button class="bot-nav-item active" onclick="nav('overview',this)" id="bn-overview">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span>Overview</span>
+    <div class="bot-nav-dot"></div>
+  </button>
+  <button class="bot-nav-item" onclick="nav('biopond',this)" id="bn-biopond">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+    <span>Biopond</span>
+    <div class="bot-nav-dot"></div>
+  </button>
+  <button class="bot-nav-item" onclick="nav('produksi',this)" id="bn-produksi">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span>Produksi</span>
+    <div class="bot-nav-dot"></div>
+  </button>
+  <button class="bot-nav-item" onclick="nav('laporan',this)" id="bn-laporan">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    <span>Laporan</span>
+    <div class="bot-nav-dot"></div>
+  </button>
+</nav>
+
+<!-- ── MODAL ── -->
+<div class="modal-ov" id="modal-ov">
+  <div class="modal">
+    <div class="modal-pill"></div>
+    <div class="modal-h"><span class="modal-title" id="m-title">–</span><button class="modal-x" onclick="closeMod()">×</button></div>
+    <div class="m-meta" id="m-meta"></div>
+    <div id="m-body"></div>
+    <div class="modal-acts" id="m-acts"></div>
+  </div>
+</div>
+
+<script>
+const H_START=9,H_END=16,SK_LO=3.6,SK_HI=3.7;
+const BD=[9,10,11,12,13,14,15,16];
+const CS_MAP={bibit:'#1D9E75',tumbuh:'#378ADD',panen:'#BA7517',harvest:'#D85A30'};
+const CT_MAP={bibit:'#04342C',tumbuh:'#042C53',panen:'#412402',harvest:'#4A1B0C'};
+const PAGE_TITLES={overview:'Overview',biopond:'Pemantauan Biopond',produksi:'Data Produksi',laporan:'Laporan & Analisis'};
+const PAGE_SUBS={overview:'Ringkasan operasional harian',biopond:'96 biopond · 24 rak · 8 batch · H9–H16',produksi:'Limbah, maggot, pupuk, telur & nutrien',laporan:'Rekap produksi & ekspor data'};
+
+function gs(d){if(d<=10)return'bibit';if(d<=14)return'tumbuh';if(d<=15)return'panen';return'harvest';}
+function gl(s){return{bibit:'Bibit baru',tumbuh:'Tumbuh',panen:'Siap panen',harvest:'Panen hari ini'}[s];}
+function ed(d){const x=new Date(2026,5,1);x.setDate(x.getDate()+(H_END-d));return x.toLocaleDateString('id-ID',{day:'numeric',month:'short'});}
+function gpk(d){const t={9:{lo:1,hi:2},10:{lo:2,hi:3},11:{lo:3,hi:4},12:{lo:3,hi:4},13:{lo:4,hi:5},14:{lo:4,hi:5},15:{lo:3,hi:4}};return t[d]||null;}
+function gpi(d){if(d===13||d===15)return{type:'today',msg:'✂ Pangkas hari ini'};if(d===12||d===14)return{type:'soon',msg:`Pangkas besok (H${d+1})`};return null;}
+
+// Build rak data: 24 rak, 4 baris × 6 kolom (FALLBACK; ditimpa applyLiveBiopond)
+let raks=[];
+for(let r=0;r<24;r++){
+  const b=Math.floor(r/3);
+  const row=Math.floor(r/6); // baris 0–3
+  const col=r%6;             // kolom 0–5
+  raks.push({r,b,bl:`B${b+1}`,row,col,d:BD[b]});
+}
+let batches=BD.map((d,i)=>({idx:i,id:`B${i+1}`,
+  raks:[`R${String(i*3+1).padStart(2,'0')}`,`R${String(i*3+3).padStart(2,'0')}`],
+  tgl_masuk:'',day:d,status:'berjalan'}));
+
+let sbOpen=true,selB=-1,curPTab='harian',calYear=2026,calMonth=5,selDay=1;
+let chartInstances={};
+
+// ── SIDEBAR toggle ──
+function toggleSB(){
+  sbOpen=!sbOpen;
+  document.getElementById('sidebar').classList.toggle('collapsed',!sbOpen);
+}
+
+// ── NAV ──
+function nav(page,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.getElementById('tb-title').textContent=PAGE_TITLES[page];
+  document.getElementById('tb-sub').textContent=PAGE_SUBS[page];
+  // desktop sidebar
+  document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('active'));
+  const sbBtns=document.querySelectorAll('.nav-btn');
+  const sbMap={overview:0,biopond:1,produksi:2,laporan:3};
+  if(sbBtns[sbMap[page]]) sbBtns[sbMap[page]].classList.add('active');
+  // bottom nav
+  document.querySelectorAll('.bot-nav-item').forEach(n=>n.classList.remove('active'));
+  const bn=document.getElementById('bn-'+page);
+  if(bn) bn.classList.add('active');
+  if(page==='biopond'){buildBF();buildRG();buildBPSum();}
+  if(page==='produksi'){buildCal();renderProd(curPTab);}
+  if(page==='laporan'){initLaporan();}
+}
+
+// ── BIOPOND ──
+function buildBF(){
+  const f=document.getElementById('bpf');
+  f.innerHTML='<button class="bpf active" onclick="fbp(-1,this)">Semua</button>';
+  batches.forEach(b=>{ f.innerHTML+=`<button class="bpf" onclick="fbp(${b.idx},this)">${b.id}</button>`; });
+}
+function fbp(b,btn){selB=b;document.querySelectorAll('#bpf .bpf').forEach(e=>e.classList.remove('active'));btn.classList.add('active');buildRG();}
+
+function buildRG(){
+  const g=document.getElementById('rg');
+  g.innerHTML='';
+  // Kelompok per baris (row 0–3)
+  for(let row=0;row<4;row++){
+    const rowRaks=raks.filter(rk=>rk.row===row&&(selB<0||rk.b===selB));
+    if(!rowRaks.length) continue;
+    const grp=document.createElement('div');
+    grp.className='bp-row-group';
+    grp.innerHTML=`<div class="bp-row-lbl">B${row+1}</div><div class="bp-row-cards" id="row-${row}"></div>`;
+    g.appendChild(grp);
+    const rowGrid=grp.querySelector(`#row-${row}`);
+    // Isi 6 slot kolom, kosong jika di-filter
+    for(let col=0;col<6;col++){
+      const rk=raks.find(r=>r.row===row&&r.col===col);
+      if(!rk||(selB>=0&&rk.b!==selB)){
+        // placeholder transparan jika filter aktif
+        if(selB>=0){
+          const ph=document.createElement('div');
+          ph.style.cssText='border-radius:var(--r-md);background:transparent;';
+          rowGrid.appendChild(ph);
+          continue;
+        }
+      }
+      if(!rk){ const ph=document.createElement('div'); ph.style.cssText='border-radius:var(--r-md);background:transparent;'; rowGrid.appendChild(ph); continue; }
+      const d=rk.d,st=gs(d),pk=gpk(d),pi=gpi(d);
+      const c=document.createElement('div');
+      c.className=`rc rc-${st}`;
+      let skH='';
+      if(pk){
+        const kL=(pk.lo*SK_LO).toFixed(1),kH=(pk.hi*SK_HI).toFixed(1);
+        skH=`<div class="rc-right"><div class="rc-skop rc-skop-${st}">${pk.lo}–${pk.hi}</div><div class="rc-kg rc-kg-${st}">${kL}–${kH} kg</div></div>`;
+      } else {
+        skH=`<div class="rc-right"><div class="rc-skop rc-skop-${st}">–</div></div>`;
+      }
+      const pgH=pi
+        ?`<div class="rc-pgbadge rcpg-${pi.type}-${st}">${pi.msg}</div>`
+        :`<div class="rc-pgbadge rcpg-none">–</div>`;
+      c.innerHTML=`
+        <div class="rc-top">
+          <div><div class="rc-id rc-id-${st}">R${String(rk.r+1).padStart(2,'0')}</div><div class="rc-hl rc-hl-${st}">${rk.bl}·H${d}</div></div>
+          ${skH}
+        </div>
+        <div class="rc-div rc-div-${st}"></div>
+        <div class="rc-bottom">${pgH}</div>`;
+      c.onclick=()=>openMod(rk);
+      rowGrid.appendChild(c);
+    }
+  }
+}
+
+function buildBPSum(){
+  const all=raks;
+  const hv=all.filter(p=>gs(p.d)==='harvest'),bi=all.filter(p=>p.d===9),tu=all.filter(p=>gs(p.d)==='tumbuh'),pk=all.filter(p=>p.d===13||p.d===15);
+  const blbl=arr=>{const ids=[...new Set(arr.map(p=>p.bl).filter(Boolean))];return ids.length?ids.join(','):'–';};
+  document.getElementById('bp-harv').textContent=hv.length;
+  document.getElementById('bp-harv-s').textContent=blbl(hv);
+  document.getElementById('bp-bibit').textContent=bi.length;
+  document.getElementById('bp-bibit-s').textContent=blbl(bi);
+  document.getElementById('bp-tumb').textContent=tu.length;
+  document.getElementById('bp-pangk').textContent=pk.length;
+}
+
+function buildOvBatch(){
+  const w=document.getElementById('ov-batch');w.innerHTML='';
+  batches.forEach(b=>{
+    const d=b.day,st=gs(d),pct=Math.round(((d-H_START)/(H_END-H_START))*100);
+    const rr=b.raks&&b.raks.length?`${b.raks[0]}–${b.raks[b.raks.length-1]}`:'';
+    const row=document.createElement('div');row.className='bt-row';
+    row.innerHTML=`<span class="bt-lbl">${b.id}</span><div class="bt-bw"><div class="bt-b" style="width:${Math.max(pct,5)}%;background:${CS_MAP[st]};color:${CT_MAP[st]};">H${d}</div></div><span class="bt-m">${rr}</span>`;
+    w.appendChild(row);
+  });
+}
+
+// ── MODAL ──
+function openMod(rk){
+  const d=rk.d,st=gs(d),pk=gpk(d),pi=gpi(d);
+  document.getElementById('m-title').textContent=`R${String(rk.r+1).padStart(2,'0')} — ${rk.bl}`;
+  document.getElementById('m-meta').innerHTML=`<span><b>Batch:</b> ${rk.bl}</span><span><b>Posisi:</b> Brs.${rk.row+1} Kol.${rk.col+1}</span><span><b>H:</b> ${d}/${H_END}</span><span><b>Status:</b> ${gl(st)}</span>`;
+  let pkS='';
+  if(pk){const kL=(pk.lo*SK_LO).toFixed(1),kH=(pk.hi*SK_HI).toFixed(1),m=Math.round((pk.lo+pk.hi)/2),pct=Math.round(((m-1)/5)*100);pkS=`<div class="m-sec"><div class="m-sec-t">Rekomendasi pakan</div><div class="pk-big"><span class="pk-num">${pk.lo}–${pk.hi}</span><span class="pk-u">skop/hari</span></div><div class="pk-sub">~${kL}–${kH} kg · 1 skop ≈ 3,6–3,7 kg</div><div class="pk-bw"><div class="pk-b" style="width:${pct}%;"></div></div></div>`;}
+  else pkS=`<div class="m-sec"><div class="m-sec-t">Pakan</div><div style="font-size:12px;color:var(--text3);">Stop — fase panen</div></div>`;
+  const pgI=[13,15].map(pd=>{let cls='pgi-next',ic='H'+pd;if(pd<d){cls='pgi-done';ic='✓';}else if(pd===d){cls='pgi-today';ic='✂';}return`<div class="pgi ${cls}"><span class="pgiday">${ic}</span><span>H${pd}</span></div>`;}).join('');
+  let pgA='';
+  if(pi)pgA=`<div class="mal mal-p">${pi.msg}</div>`;
+  else if(d>15)pgA=`<div class="mal mal-ok">✓ Semua pangkas selesai</div>`;
+  document.getElementById('m-body').innerHTML=`<div class="m-sec"><div class="m-sec-t">Info rak</div><div class="ig"><div class="ib"><label>Sisa hari</label><span>${H_END-d} hari</span></div><div class="ib"><label>Est. panen</label><span>${ed(d)}</span></div><div class="ib"><label>Tingkat</label><span>T1–T4</span></div><div class="ib"><label>Total pond</label><span>12</span></div></div></div>${pkS}<div class="m-sec"><div class="m-sec-t">Pangkas (H13 & H15)</div><div class="pgt">${pgI}</div>${pgA}</div>`;
+  let btns=`<button class="btn btn-outline btn-sm" onclick="closeMod()">Tutup</button>`;
+  if(st==='harvest'||st==='panen')btns+=`<button class="btn btn-primary btn-sm" onclick="sendPrompt('Input bobot panen R${String(rk.r+1).padStart(2,'0')}')">Input bobot ↗</button>`;
+  if(d===13||d===15)btns+=`<button class="btn btn-primary btn-sm" onclick="sendPrompt('Catat pemangkasan R${String(rk.r+1).padStart(2,'0')}')">Catat pangkas ↗</button>`;
+  btns+=`<button class="btn btn-outline btn-sm" onclick="sendPrompt('Catat observasi R${String(rk.r+1).padStart(2,'0')} H${d}')">Observasi ↗</button>`;
+  document.getElementById('m-acts').innerHTML=btns;
+  document.getElementById('modal-ov').classList.add('open');
+}
+function closeMod(){document.getElementById('modal-ov').classList.remove('open');}
+
+// ── KALENDER ──
+function buildCal(){
+  const months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const w=document.getElementById('cal-wrap');
+  const first=new Date(calYear,calMonth,1).getDay();
+  const days=new Date(calYear,calMonth+1,0).getDate();
+  const hasData=[1,2,3,4,5,6,7,8,10,11,12,15,18,20,22,25,28,30];
+  let html=`<div class="cal-header"><span class="cal-title">${months[calMonth]} ${calYear}</span><div class="cal-nav"><button onclick="calNav(-1)">‹</button><button onclick="calNav(1)">›</button></div></div><div class="cal-grid">`;
+  ['Min','Sen','Sel','Rab','Kam','Jum','Sab'].forEach(d=>html+=`<div class="cal-day-lbl">${d}</div>`);
+  for(let i=0;i<first;i++) html+=`<div class="cal-day empty">0</div>`;
+  for(let d=1;d<=days;d++){
+    const isToday=d===1&&calMonth===5&&calYear===2026;
+    const isSel=d===selDay&&calMonth===5&&calYear===2026;
+    let cls='cal-day';
+    if(isToday)cls+=' today';
+    else if(isSel)cls+=' selected';
+    if(hasData.includes(d)&&!isToday&&!isSel)cls+=' has-data';
+    html+=`<div class="${cls}" onclick="selDate(${d})">${d}</div>`;
+  }
+  html+=`</div>`;
+  w.innerHTML=html;
+}
+function calNav(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}buildCal();}
+function selDate(d){selDay=d;buildCal();const m=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];document.getElementById('cal-selected-lbl').textContent=`${d} ${m[calMonth]} ${calYear}${d===1&&calMonth===5&&calYear===2026?' (hari ini)':''}`;}
+
+// ── PRODUKSI ──
+function ptab(t,btn){
+  curPTab=t;
+  document.querySelectorAll('#page-produksi .tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('prod-cal-card').style.display=t==='harian'?'block':'none';
+  renderProd(t);
+}
+
+function renderProd(t){
+  const el=document.getElementById('prod-content');
+  ['ch-bar','ch-pie','ch-line','ch-bar2'].forEach(id=>{if(chartInstances[id]){chartInstances[id].destroy();delete chartInstances[id];}});
+  const days7=['Sn','Sl','Rb','Km','Jm','Sb','Mg'],weeks4=['Mg 1','Mg 2','Mg 3','Mg 4'],months6=['Jan','Feb','Mar','Apr','Mei','Jun'];
+  const L=window.LIVE;
+  const rows = L ? [
+    {cat:'Limbah', masuk:Math.round(L.limbah_masuk[t]),  keluar:null,                         sat:'kg'},
+    {cat:'Maggot', masuk:null,                           keluar:Math.round(L.maggot_keluar[t]), sat:'kg'},
+    {cat:'Telur',  masuk:Math.round(L.telur_masuk[t]),   keluar:Math.round(L.telur_keluar[t]),  sat:'gram'},
+    {cat:'Pupuk',  masuk:null,                           keluar:Math.round(L.pupuk_keluar[t]),  sat:'kg'},
+    {cat:'Nutrien',masuk:Math.round(L.nutrien_masuk[t]), keluar:Math.round(L.nutrien_keluar[t]),sat:'kg'},
+  ] : [
+    {cat:'Limbah',masuk:t==='harian'?380:t==='mingguan'?2660:t==='bulanan'?9400:112000,keluar:null,sat:'kg'},
+    {cat:'Maggot',masuk:null,keluar:t==='harian'?42:t==='mingguan'?294:t==='bulanan'?1100:13200,sat:'kg'},
+    {cat:'Telur',masuk:t==='harian'?850:t==='mingguan'?5950:t==='bulanan'?21000:252000,keluar:t==='harian'?200:t==='mingguan'?1400:t==='bulanan'?5000:60000,sat:'gram'},
+    {cat:'Pupuk',masuk:null,keluar:t==='harian'?95:t==='mingguan'?665:t==='bulanan'?2400:28800,sat:'kg'},
+    {cat:'Nutrien',masuk:t==='harian'?18:t==='mingguan'?126:t==='bulanan'?450:5400,keluar:t==='harian'?5:t==='mingguan'?35:t==='bulanan'?125:1500,sat:'kg'},
+  ];
+  rows.forEach(r=>{const m=r.masuk||0,k=r.keluar||0,net=m-k;r.saldo=net>=0?'+'+net.toLocaleString():net.toLocaleString();});
+
+  let html='';
+  if(t==='harian'){
+    html+=`<div class="chart-grid"><div class="chart-box"><div class="chart-title">Masuk vs Keluar</div><div class="chart-sub">Volume hari ini (kg)</div><div class="cleg"><span><span class="cleg-dot" style="background:#4A7B8C;"></span>Masuk</span><span><span class="cleg-dot" style="background:#D85A30;"></span>Keluar</span></div><div style="position:relative;height:160px;"><canvas id="ch-bar"></canvas></div></div><div class="chart-box"><div class="chart-title">Distribusi output</div><div class="chart-sub">Proporsi keluar hari ini</div><div class="cleg"><span><span class="cleg-dot" style="background:#378ADD;"></span>Maggot</span><span><span class="cleg-dot" style="background:#639922;"></span>Pupuk</span><span><span class="cleg-dot" style="background:#BA7517;"></span>Nutrien</span></div><div style="position:relative;height:160px;"><canvas id="ch-pie"></canvas></div></div></div>`;
+  } else if(t==='mingguan'){
+    html+=`<div class="chart-grid"><div class="chart-box full"><div class="chart-title">Tren harian minggu ini</div><div class="chart-sub">Limbah masuk, maggot & pupuk (kg)</div><div class="cleg"><span><span class="cleg-dot" style="background:#4A7B8C;"></span>Limbah</span><span><span class="cleg-dot" style="background:#378ADD;"></span>Maggot</span><span><span class="cleg-dot" style="background:#639922;"></span>Pupuk</span></div><div style="position:relative;height:180px;"><canvas id="ch-line"></canvas></div></div></div>`;
+  } else if(t==='bulanan'){
+    html+=`<div class="chart-grid"><div class="chart-box full"><div class="chart-title">Tren mingguan bulan ini</div><div class="chart-sub">Per minggu (kg)</div><div class="cleg"><span><span class="cleg-dot" style="background:#4A7B8C;"></span>Limbah</span><span><span class="cleg-dot" style="background:#378ADD;"></span>Maggot</span><span><span class="cleg-dot" style="background:#639922;"></span>Pupuk</span></div><div style="position:relative;height:180px;"><canvas id="ch-bar2"></canvas></div></div></div>`;
+  } else {
+    html+=`<div class="chart-grid"><div class="chart-box full"><div class="chart-title">Tren produksi tahunan</div><div class="chart-sub">Jan–Jun 2026 (ton)</div><div class="cleg"><span><span class="cleg-dot" style="background:#4A7B8C;"></span>Limbah</span><span><span class="cleg-dot" style="background:#378ADD;"></span>Maggot</span><span><span class="cleg-dot" style="background:#639922;"></span>Pupuk</span></div><div style="position:relative;height:180px;"><canvas id="ch-line"></canvas></div></div></div>`;
+  }
+
+  html+=`<div class="sc"><div class="sc-head"><div class="sc-title">Pergerakan stok</div><div class="sc-sub">${t==='harian'?'1 Jun 2026':t==='mingguan'?'Minggu ini':t==='bulanan'?'Jun 2026':'Jan–Jun 2026'}</div></div><div class="sc-body" style="padding:0 14px;overflow-x:auto;"><table class="dt"><thead><tr><th>Kategori</th><th>Masuk</th><th>Keluar</th><th>Saldo</th><th>Sat.</th></tr></thead><tbody>`;
+  rows.forEach(r=>{
+    const mi=r.masuk?`<span class="in-val">${r.masuk.toLocaleString()}</span>`:`<span class="muted">–</span>`;
+    const ke=r.keluar?`<span class="out-val">${r.keluar.toLocaleString()}</span>`:`<span class="muted">–</span>`;
+    const sa=r.saldo.startsWith('+')?`<span class="net-pos">${r.saldo}</span>`:`<span class="net-neg">${r.saldo}</span>`;
+    html+=`<tr><td>${r.cat}</td><td>${mi}</td><td>${ke}</td><td>${sa}</td><td style="color:var(--text3);">${r.sat}</td></tr>`;
+  });
+  html+=`</tbody></table></div></div>`;
+  el.innerHTML=html;
+
+  setTimeout(()=>{
+    const opts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},autoSkip:false}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:10}}}}};
+    if(t==='harian'){
+      const L=window.LIVE;
+      const dMasuk = L?[L.limbah_masuk.harian,0,L.telur_masuk.harian,0,L.nutrien_masuk.harian]:[380,0,850,0,18];
+      const dKeluar= L?[0,L.maggot_keluar.harian,L.telur_keluar.harian,L.pupuk_keluar.harian,L.nutrien_keluar.harian]:[0,42,200,95,5];
+      const dPie   = L?[L.maggot_keluar.harian,L.pupuk_keluar.harian,L.nutrien_keluar.harian,L.telur_keluar.harian]:[42,95,5,0.2];
+      const bC=document.getElementById('ch-bar');
+      if(bC)chartInstances['ch-bar']=new Chart(bC,{type:'bar',data:{labels:['Limbah','Maggot','Telur','Pupuk','Nutrien'],datasets:[{label:'Masuk',data:dMasuk,backgroundColor:'rgba(74,123,140,0.7)',borderRadius:4},{label:'Keluar',data:dKeluar,backgroundColor:'rgba(216,90,48,0.7)',borderRadius:4}]},options:{...opts}});
+      const pC=document.getElementById('ch-pie');
+      if(pC)chartInstances['ch-pie']=new Chart(pC,{type:'doughnut',data:{labels:['Maggot','Pupuk','Nutrien','Telur'],datasets:[{data:dPie,backgroundColor:['#378ADD','#639922','#BA7517','#D4537E'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false}}}});
+    } else if(t==='mingguan'){
+      const lC=document.getElementById('ch-line');
+      if(lC)chartInstances['ch-line']=new Chart(lC,{type:'line',data:{labels:days7,datasets:[{label:'Limbah',data:[350,380,410,390,370,360,380],borderColor:'#4A7B8C',backgroundColor:'rgba(74,123,140,0.07)',tension:0.4,borderWidth:2,pointRadius:3,fill:true},{label:'Maggot',data:[38,42,45,40,39,41,42],borderColor:'#378ADD',tension:0.4,borderWidth:2,pointRadius:3,borderDash:[4,3]},{label:'Pupuk',data:[88,95,102,90,85,92,95],borderColor:'#639922',tension:0.4,borderWidth:2,pointRadius:3,borderDash:[2,3]}]},options:{...opts}});
+    } else if(t==='bulanan'){
+      const b2C=document.getElementById('ch-bar2');
+      if(b2C)chartInstances['ch-bar2']=new Chart(b2C,{type:'bar',data:{labels:weeks4,datasets:[{label:'Limbah',data:[2200,2450,2600,2150],backgroundColor:'rgba(74,123,140,0.7)',borderRadius:3},{label:'Maggot',data:[265,290,310,235],backgroundColor:'rgba(55,138,221,0.7)',borderRadius:3},{label:'Pupuk',data:[580,650,700,470],backgroundColor:'rgba(99,153,34,0.7)',borderRadius:3}]},options:{...opts}});
+    } else {
+      const lC2=document.getElementById('ch-line');
+      if(lC2)chartInstances['ch-line']=new Chart(lC2,{type:'line',data:{labels:months6,datasets:[{label:'Limbah',data:[18.5,19.2,20.1,21.4,20.5,19.6],borderColor:'#4A7B8C',backgroundColor:'rgba(74,123,140,0.07)',tension:0.4,borderWidth:2,pointRadius:4,fill:true},{label:'Maggot',data:[2.1,2.2,2.4,2.5,2.2,2.3],borderColor:'#378ADD',tension:0.4,borderWidth:2,pointRadius:4,borderDash:[5,3]},{label:'Pupuk',data:[4.6,4.8,5.1,5.3,4.9,5.0],borderColor:'#639922',tension:0.4,borderWidth:2,pointRadius:4,borderDash:[2,3]}]},options:{...opts}});
+    }
+  },80);
+}
+
+// ── LAPORAN ──
+let laporanInit=false;
+function initLaporan(){
+  updateLaporanLive();
+  if(laporanInit)return; laporanInit=true;
+  const months6=['Jan','Feb','Mar','Apr','Mei','Jun'];
+  setTimeout(()=>{
+    const eC=document.getElementById('ch-efisiensi');
+    if(eC)new Chart(eC,{type:'bar',data:{labels:months6,datasets:[{label:'Maggot %',data:[11.4,11.5,11.9,11.7,10.7,11.7],backgroundColor:'rgba(74,123,140,0.75)',borderRadius:4},{label:'Pupuk %',data:[24.9,25.0,25.4,24.8,23.9,25.5],backgroundColor:'rgba(99,153,34,0.65)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},autoSkip:false}},y:{grid:{color:'rgba(0,0,0,0.04)'},max:35,ticks:{font:{size:10},callback:v=>v+'%'}}}}});
+    const dC=document.getElementById('ch-dist');
+    if(dC)new Chart(dC,{type:'doughnut',data:{labels:['Maggot','Pupuk','Nutrien','Telur'],datasets:[{data:[13.7,29.7,5.46,0.256],backgroundColor:['#378ADD','#639922','#4A7B8C','#D4537E'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false}}}});
+  },80);
+}
+
+function exportSim(type){
+  const msgs={pdf:'Laporan PDF siap diunduh',excel:'File Excel siap diunduh',batch:'Riwayat batch diekspor'};
+  const t=document.getElementById('export-toast'),m=document.getElementById('export-msg');
+  t.style.display='flex';m.textContent=msgs[type]||'Selesai';
+  setTimeout(()=>{t.style.display='none';},2500);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  LIVE DATA — baca spreadsheet baru via gviz JSONP (bypass CORS)
+// ═══════════════════════════════════════════════════════════════════════════
+const SHEET_ID='1VUUrZxOGekS8OUq8uDeoUjleormjz-VTtyJIygFtXT8';
+const TABS={
+  limbah :{gid:'125058629', cat:'Limbah',        dot:'#8B6F47'},
+  panen  :{gid:'1177301386',cat:'Panen maggot',  dot:'#D85A30'},
+  nutrien:{gid:'326007552', cat:'Nutrien/Telur',  dot:'#1D9E75'},
+  pangkas:{gid:'955814712', cat:'Pangkas',        dot:'#BA7517'},
+  pupuk  :{sheet:'Pupuk',    cat:'Pupuk',          dot:'#639922'},
+  _rak   :{gid:'1069775867'},   // master Rak_Biopond
+  _batch :{gid:'90387111'},     // master Batch_Siklus
+};
+let gvizN=0;
+function gvizLoad(tab){
+  return new Promise((res,rej)=>{
+    const cb='gvizcb'+(gvizN++), t=TABS[tab];
+    const q=t.gid?`gid=${t.gid}`:`sheet=${encodeURIComponent(t.sheet)}`;
+    const s=document.createElement('script');
+    const done=ok=>{ delete window[cb]; s.remove(); };
+    window[cb]=resp=>{ const tb=resp.table; done(); res(parseGviz(tb)); };
+    s.onerror=()=>{ done(); rej(new Error('gagal load '+tab)); };
+    s.src=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}&${q}`;
+    document.body.appendChild(s);
+  });
+}
+function nkey(l){return String(l||'').split('\n')[0].replace(/\*/g,'').trim().toLowerCase();}
+function parseGviz(table){
+  const cols=table.cols.map(c=>nkey(c.label));
+  return table.rows.map(r=>{
+    const o={};
+    r.c.forEach((cell,i)=>{ o[cols[i]]=cell&&cell.v!=null?cell.v:''; });
+    o.__id = r.c[0]&&r.c[0].v!=null ? r.c[0].v : '';  // PK = kolom pertama (label sering "kotor")
+    return o;
+  }).filter(o=>Object.keys(o).some(k=>k&&k!=='__id'&&o[k]!==''&&o[k]!=null));
+}
+function normDate(s){
+  if(!s) return '';
+  s=String(s);
+  const m=s.match(/Date\((\d+),(\d+),(\d+)/);
+  if(m) return `${m[1]}-${String(+m[2]+1).padStart(2,'0')}-${String(+m[3]).padStart(2,'0')}`;
+  return s;
+}
+function fmtTgl(s){
+  s=normDate(s); if(!s) return '';
+  const p=s.split('-');
+  if(p.length===3){const mo=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];return `${+p[2]} ${mo[+p[1]-1]||''}`;}
+  return s;
+}
+function liveNum(v){return v===''||v==null?'–':v;}
+function summarize(k,o){
+  if(k==='limbah')  return `${liveNum(o.bobot_kg)} kg ${o.jenis_limbah||''} ${o['input/output']?'('+o['input/output']+')':''}`;
+  if(k==='panen')   return `${o.rak_id||''}/${o.batch_id||''} · ${liveNum(o.bobot_bersih_kg)} kg bersih`;
+  if(k==='pupuk')   return `${o.tipe||''} ${liveNum(o.bobot_kg)} kg`;
+  if(k==='nutrien') return `${o.jenis||''} ${o.tipe||''} ${liveNum(o.jumlah)} ${o.satuan||''}`;
+  if(k==='pangkas') return `${o.rak_id||''} H${o.hari_ke||''} · ${liveNum(o.hasil_pangkas_kg)} kg`;
+  return '';
+}
+// ── AGREGASI untuk metrik/produksi/laporan ──
+function todayInfo(){
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  const ds=`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+  const wa=new Date(d); wa.setDate(d.getDate()-6);
+  const was=`${wa.getFullYear()}-${p(wa.getMonth()+1)}-${p(wa.getDate())}`;
+  return {ds,was,ym:ds.slice(0,7),y:ds.slice(0,4)};
+}
+function inP(tgl,period,T){
+  tgl=normDate(tgl); if(!tgl) return false;
+  if(period==='harian')   return tgl===T.ds;
+  if(period==='mingguan') return tgl>=T.was && tgl<=T.ds;
+  if(period==='bulanan')  return tgl.slice(0,7)===T.ym;
+  return tgl.slice(0,4)===T.y;            // tahunan
+}
+function toNum(v){const n=parseFloat(String(v).replace(',','.'));return isNaN(n)?0:n;}
+function computeAgg(map){
+  const T=todayInfo(), periods=['harian','mingguan','bulanan','tahunan'];
+  const cats=['limbah_masuk','maggot_keluar','pupuk_keluar','nutrien_masuk','nutrien_keluar','telur_masuk','telur_keluar','panen_count','pangkas_count','batch_panen'];
+  const agg={}; cats.forEach(c=>{agg[c]={};periods.forEach(p=>agg[c][p]=0);});
+  const bset={harian:new Set(),mingguan:new Set(),bulanan:new Set(),tahunan:new Set()};
+  periods.forEach(p=>{
+    (map.limbah||[]).forEach(o=>{ if(inP(o.tgl_masuk,p,T)&&String(o['input/output']||'').toLowerCase()!=='keluar') agg.limbah_masuk[p]+=toNum(o.bobot_kg); });
+    (map.panen||[]).forEach(o=>{ if(inP(o.tgl_panen,p,T)){ agg.maggot_keluar[p]+=toNum(o.bobot_bersih_kg||o.bobot_kotor_kg); agg.panen_count[p]++; if(o.batch_id)bset[p].add(o.batch_id);} });
+    (map.pupuk||[]).forEach(o=>{ if(inP(o.tgl_transaksi,p,T)&&String(o.tipe||'').toLowerCase()==='keluar') agg.pupuk_keluar[p]+=toNum(o.bobot_kg); });
+    (map.nutrien||[]).forEach(o=>{ if(inP(o.tgl_transaksi,p,T)){ const j=String(o.jenis||'').toLowerCase(),tp=String(o.tipe||'').toLowerCase(),a=toNum(o.jumlah);
+      if(j==='nutrien'&&tp==='masuk')agg.nutrien_masuk[p]+=a; if(j==='nutrien'&&tp==='keluar')agg.nutrien_keluar[p]+=a;
+      if(j==='telur'&&tp==='masuk')agg.telur_masuk[p]+=a;   if(j==='telur'&&tp==='keluar')agg.telur_keluar[p]+=a; } });
+    (map.pangkas||[]).forEach(o=>{ if(inP(o.tgl_pangkas,p,T))agg.pangkas_count[p]++; });
+  });
+  periods.forEach(p=>agg.batch_panen[p]=bset[p].size);
+  return agg;
+}
+function setTxt(id,v){const e=document.getElementById(id); if(e)e.textContent=v;}
+function r0(n){return Math.round(n).toLocaleString('id-ID');}
+function updateOverviewLive(a){
+  setTxt('m-limbah',r0(a.limbah_masuk.harian));
+  setTxt('m-maggot',r0(a.maggot_keluar.harian));
+  setTxt('m-pupuk', r0(a.pupuk_keluar.harian));
+  setTxt('m-panen', a.panen_count.harian);
+  setTxt('m-pangkas',a.pangkas_count.harian);
+}
+function updateLaporanLive(){
+  const a=window.LIVE; if(!a) return;
+  setTxt('l-limbah',(a.limbah_masuk.tahunan/1000).toFixed(1));
+  setTxt('l-maggot',(a.maggot_keluar.tahunan/1000).toFixed(1));
+  setTxt('l-pupuk', (a.pupuk_keluar.tahunan/1000).toFixed(1));
+  const eff=a.limbah_masuk.tahunan? (a.maggot_keluar.tahunan/a.limbah_masuk.tahunan*100):0;
+  setTxt('l-efis',eff.toFixed(1));
+}
+
+// ── BIOPOND dari master Rak_Biopond + Batch_Siklus ──
+function applyLiveBiopond(rakRows, batchRows){
+  if((!rakRows||!rakRows.length) && (!batchRows||!batchRows.length)) return;
+  if(batchRows) batchRows=batchRows.filter(b=>/^B\s*\d/i.test(String(b.__id||'')));
+  if(rakRows)   rakRows  =rakRows.filter(r=>/^R\s*\d/i.test(String(r.__id||'')));
+  if(batchRows && batchRows.length){
+    batches = batchRows.map((b,i)=>({
+      idx:i, id:String(b.__id||('B'+(i+1))),
+      raks:[b.rak_1,b.rak_2,b.rak_3].filter(Boolean).map(String),
+      tgl_masuk:normDate(b.tgl_masuk),
+      day:Math.max(9,Math.min(16, parseInt(b.hari_ke)||9)),
+      status:String(b.status_batch||''), bibit:b.bobot_bibit_kg
+    }));
+  }
+  const byId={}; batches.forEach(b=>byId[b.id]=b);
+  if(rakRows && rakRows.length){
+    raks = rakRows.map(rk=>{
+      const id=String(rk.__id||'');
+      const num=parseInt(id.replace(/\D/g,''))||0;
+      const bid=String(rk.batch_id||'');
+      const bt=byId[bid];
+      return { r:num-1, id, bl:bid,
+               b: bt?bt.idx:-1,
+               row:(parseInt(rk.baris)||1)-1, col:(parseInt(rk.kolom)||1)-1,
+               d: bt?bt.day:0, status_rak:String(rk.status_rak||'') };
+    });
+  }
+  setTxt('bp-total', raks.length*4);
+  setTxt('bp-total-s', raks.length+' rak × 4 tkt');
+  setTxt('bp-batch', batches.filter(b=>b.status!=='selesai').length);
+  PAGE_SUBS.biopond=`${raks.length} rak · ${batches.length} batch · ${raks.length*4} pond · H9–H16`;
+  if(document.getElementById('page-biopond').classList.contains('active')) document.getElementById('tb-sub').textContent=PAGE_SUBS.biopond;
+  buildOvBatch();
+  if(document.getElementById('page-biopond').classList.contains('active')){ buildBF(); buildRG(); buildBPSum(); }
+}
+
+async function loadLive(){
+  const body=document.getElementById('live-body');
+  body.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3);font-size:12px;">Memuat data live…</div>';
+  try{
+    const keys=['limbah','panen','pupuk','nutrien','pangkas'];
+    const results=await Promise.all(keys.map(k=>gvizLoad(k).then(rows=>({k,rows})).catch(()=>({k,rows:[]}))));
+
+    // hitung agregasi → metrik Overview, tabel Produksi, kartu Laporan
+    const map={}; results.forEach(({k,rows})=>map[k]=rows);
+    window.LIVE_MAP=map;
+    window.LIVE=computeAgg(map);
+    updateOverviewLive(window.LIVE);
+    updateLaporanLive();
+    if(document.getElementById('page-produksi').classList.contains('active')) renderProd(curPTab);
+
+    // master biopond (rak & batch) — paralel, tidak blok kartu di atas
+    Promise.all([gvizLoad('_rak').catch(()=>[]), gvizLoad('_batch').catch(()=>[])])
+      .then(([rakRows,batchRows])=>applyLiveBiopond(rakRows,batchRows));
+
+    let items=[];
+    results.forEach(({k,rows})=>{
+      const t=TABS[k];
+      rows.forEach(o=>{
+        const tgl=normDate(o.tgl_masuk||o.tgl_panen||o.tgl_transaksi||o.tgl_pangkas||'');
+        const foto=String(o.foto_limbah||'');
+        items.push({k,cat:t.cat,dot:t.dot,tgl,jam:o.jam_masuk||'',
+          foto:/^https?:\/\//.test(foto)?foto:'',summary:summarize(k,o)});
+      });
+    });
+    items.sort((a,b)=>(b.tgl+(b.jam||'')).localeCompare(a.tgl+(a.jam||'')));
+    items=items.slice(0,12);
+    if(!items.length){body.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3);font-size:12px;">Belum ada data.</div>';return;}
+    body.innerHTML=items.map(it=>`
+      <div class="act-item">
+        <div class="act-left" style="gap:10px;align-items:center;">
+          ${it.foto
+            ? `<img src="${it.foto}" loading="lazy" title="Klik untuk perbesar" onclick="window.open('${it.foto}','_blank')" style="width:42px;height:42px;border-radius:7px;object-fit:cover;border:1px solid var(--cream3);cursor:pointer;flex-shrink:0;">`
+            : `<span class="act-dot" style="background:${it.dot};width:10px;height:10px;"></span>`}
+          <span class="act-text"><b>${it.cat}</b> — ${it.summary}</span>
+        </div>
+        <span class="act-badge">${fmtTgl(it.tgl)}${it.jam?' '+it.jam:''}</span>
+      </div>`).join('');
+  }catch(e){
+    body.innerHTML='<div style="padding:16px;text-align:center;color:var(--danger);font-size:12px;">Gagal memuat: '+e.message+'</div>';
+  }
+}
+
+// ── INIT ──
+(function(){const e=document.getElementById('tb-date');
+  if(e)e.textContent=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'short',year:'numeric'});})();
+buildOvBatch();
+loadLive();
+</script>
+</body>
+</html>
