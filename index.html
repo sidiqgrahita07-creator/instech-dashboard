@@ -610,7 +610,9 @@ let batches=BD.map((d,i)=>({idx:i,id:`B${i+1}`,
   raks:[`R${String(i*3+1).padStart(2,'0')}`,`R${String(i*3+3).padStart(2,'0')}`],
   tgl_masuk:'',day:d,status:'berjalan'}));
 
-let sbOpen=true,selB=-1,curPTab='harian',calYear=2026,calMonth=5,selDay=1;
+let sbOpen=true,selB=-1,curPTab='harian';
+let _t0=new Date(),calYear=_t0.getFullYear(),calMonth=_t0.getMonth(),selDay=_t0.getDate();
+let selDateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(selDay).padStart(2,'0')}`;
 let chartInstances={};
 
 // ── SIDEBAR toggle ──
@@ -749,24 +751,36 @@ function buildCal(){
   const w=document.getElementById('cal-wrap');
   const first=new Date(calYear,calMonth,1).getDay();
   const days=new Date(calYear,calMonth+1,0).getDate();
-  const hasData=[1,2,3,4,5,6,7,8,10,11,12,15,18,20,22,25,28,30];
+  const hasData=datesWithData(calYear,calMonth);
+  const _tn=new Date();
+  const _isCurMonth=(calMonth===_tn.getMonth()&&calYear===_tn.getFullYear());
+  const _sp=selDateStr.split('-');
+  const _isSelMonth=(+_sp[0]===calYear&&+_sp[1]===calMonth+1);
   let html=`<div class="cal-header"><span class="cal-title">${months[calMonth]} ${calYear}</span><div class="cal-nav"><button onclick="calNav(-1)">‹</button><button onclick="calNav(1)">›</button></div></div><div class="cal-grid">`;
   ['Min','Sen','Sel','Rab','Kam','Jum','Sab'].forEach(d=>html+=`<div class="cal-day-lbl">${d}</div>`);
   for(let i=0;i<first;i++) html+=`<div class="cal-day empty">0</div>`;
   for(let d=1;d<=days;d++){
-    const isToday=d===1&&calMonth===5&&calYear===2026;
-    const isSel=d===selDay&&calMonth===5&&calYear===2026;
+    const isToday=_isCurMonth&&d===_tn.getDate();
+    const isSel=_isSelMonth&&d===+_sp[2];
     let cls='cal-day';
     if(isToday)cls+=' today';
     else if(isSel)cls+=' selected';
-    if(hasData.includes(d)&&!isToday&&!isSel)cls+=' has-data';
+    if(hasData.has(d)&&!isToday&&!isSel)cls+=' has-data';
     html+=`<div class="${cls}" onclick="selDate(${d})">${d}</div>`;
   }
   html+=`</div>`;
   w.innerHTML=html;
 }
 function calNav(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}buildCal();}
-function selDate(d){selDay=d;buildCal();const m=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];document.getElementById('cal-selected-lbl').textContent=`${d} ${m[calMonth]} ${calYear}${d===1&&calMonth===5&&calYear===2026?' (hari ini)':''}`;}
+function selDate(d){
+  selDay=d;
+  selDateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  buildCal();
+  const m=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+  const isTdy=selDateStr===todayInfo().ds;
+  document.getElementById('cal-selected-lbl').textContent=`${d} ${m[calMonth]} ${calYear}${isTdy?' (hari ini)':''}`;
+  if(curPTab==='harian') renderProd('harian');
+}
 
 // ── PRODUKSI ──
 function ptab(t,btn){
@@ -782,12 +796,14 @@ function renderProd(t){
   ['ch-bar','ch-pie','ch-line','ch-bar2'].forEach(id=>{if(chartInstances[id]){chartInstances[id].destroy();delete chartInstances[id];}});
   const days7=['Sn','Sl','Rb','Km','Jm','Sb','Mg'],weeks4=['Mg 1','Mg 2','Mg 3','Mg 4'],months6=['Jan','Feb','Mar','Apr','Mei','Jun'];
   const L=window.LIVE;
-  const rows = L ? [
-    {cat:'Limbah', masuk:Math.round(L.limbah_masuk[t]),  keluar:null,                         sat:'kg'},
-    {cat:'Maggot', masuk:null,                           keluar:Math.round(L.maggot_keluar[t]), sat:'kg'},
-    {cat:'Telur',  masuk:Math.round(L.telur_masuk[t]),   keluar:Math.round(L.telur_keluar[t]),  sat:'gram'},
-    {cat:'Pupuk',  masuk:null,                           keluar:Math.round(L.pupuk_keluar[t]),  sat:'kg'},
-    {cat:'Nutrien',masuk:Math.round(L.nutrien_masuk[t]), keluar:Math.round(L.nutrien_keluar[t]),sat:'kg'},
+  const D = (t==='harian') ? aggDate(selDateStr) : null;   // harian = tanggal yg dipilih di kalender
+  const gv = cat => D ? D[cat] : (L ? L[cat][t] : 0);
+  const rows = (L||D) ? [
+    {cat:'Limbah', masuk:Math.round(gv('limbah_masuk')),  keluar:null,                          sat:'kg'},
+    {cat:'Maggot', masuk:null,                            keluar:Math.round(gv('maggot_keluar')), sat:'kg'},
+    {cat:'Telur',  masuk:Math.round(gv('telur_masuk')),   keluar:Math.round(gv('telur_keluar')),  sat:'gram'},
+    {cat:'Pupuk',  masuk:null,                            keluar:Math.round(gv('pupuk_keluar')),  sat:'kg'},
+    {cat:'Nutrien',masuk:Math.round(gv('nutrien_masuk')), keluar:Math.round(gv('nutrien_keluar')),sat:'kg'},
   ] : [
     {cat:'Limbah',masuk:t==='harian'?380:t==='mingguan'?2660:t==='bulanan'?9400:112000,keluar:null,sat:'kg'},
     {cat:'Maggot',masuk:null,keluar:t==='harian'?42:t==='mingguan'?294:t==='bulanan'?1100:13200,sat:'kg'},
@@ -808,7 +824,7 @@ function renderProd(t){
     html+=`<div class="chart-grid"><div class="chart-box full"><div class="chart-title">Tren produksi tahunan</div><div class="chart-sub">Jan–Jun 2026 (ton)</div><div class="cleg"><span><span class="cleg-dot" style="background:#4A7B8C;"></span>Limbah</span><span><span class="cleg-dot" style="background:#378ADD;"></span>Maggot</span><span><span class="cleg-dot" style="background:#639922;"></span>Pupuk</span></div><div style="position:relative;height:180px;"><canvas id="ch-line"></canvas></div></div></div>`;
   }
 
-  html+=`<div class="sc"><div class="sc-head"><div class="sc-title">Pergerakan stok</div><div class="sc-sub">${t==='harian'?'1 Jun 2026':t==='mingguan'?'Minggu ini':t==='bulanan'?'Jun 2026':'Jan–Jun 2026'}</div></div><div class="sc-body" style="padding:0 14px;overflow-x:auto;"><table class="dt"><thead><tr><th>Kategori</th><th>Masuk</th><th>Keluar</th><th>Saldo</th><th>Sat.</th></tr></thead><tbody>`;
+  html+=`<div class="sc"><div class="sc-head"><div class="sc-title">Pergerakan stok</div><div class="sc-sub">${t==='harian'?fmtTgl(selDateStr):t==='mingguan'?'Minggu ini':t==='bulanan'?'Jun 2026':'Jan–Jun 2026'}</div></div><div class="sc-body" style="padding:0 14px;overflow-x:auto;"><table class="dt"><thead><tr><th>Kategori</th><th>Masuk</th><th>Keluar</th><th>Saldo</th><th>Sat.</th></tr></thead><tbody>`;
   rows.forEach(r=>{
     const mi=r.masuk?`<span class="in-val">${r.masuk.toLocaleString()}</span>`:`<span class="muted">–</span>`;
     const ke=r.keluar?`<span class="out-val">${r.keluar.toLocaleString()}</span>`:`<span class="muted">–</span>`;
@@ -821,10 +837,10 @@ function renderProd(t){
   setTimeout(()=>{
     const opts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},autoSkip:false}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:10}}}}};
     if(t==='harian'){
-      const L=window.LIVE;
-      const dMasuk = L?[L.limbah_masuk.harian,0,L.telur_masuk.harian,0,L.nutrien_masuk.harian]:[380,0,850,0,18];
-      const dKeluar= L?[0,L.maggot_keluar.harian,L.telur_keluar.harian,L.pupuk_keluar.harian,L.nutrien_keluar.harian]:[0,42,200,95,5];
-      const dPie   = L?[L.maggot_keluar.harian,L.pupuk_keluar.harian,L.nutrien_keluar.harian,L.telur_keluar.harian]:[42,95,5,0.2];
+      const D=aggDate(selDateStr);
+      const dMasuk = [D.limbah_masuk,0,D.telur_masuk,0,D.nutrien_masuk];
+      const dKeluar= [0,D.maggot_keluar,D.telur_keluar,D.pupuk_keluar,D.nutrien_keluar];
+      const dPie   = [D.maggot_keluar,D.pupuk_keluar,D.nutrien_keluar,D.telur_keluar];
       const bC=document.getElementById('ch-bar');
       if(bC)chartInstances['ch-bar']=new Chart(bC,{type:'bar',data:{labels:['Limbah','Maggot','Telur','Pupuk','Nutrien'],datasets:[{label:'Masuk',data:dMasuk,backgroundColor:'rgba(74,123,140,0.7)',borderRadius:4},{label:'Keluar',data:dKeluar,backgroundColor:'rgba(216,90,48,0.7)',borderRadius:4}]},options:{...opts}});
       const pC=document.getElementById('ch-pie');
@@ -954,6 +970,31 @@ function computeAgg(map){
   periods.forEach(p=>agg.batch_panen[p]=bset[p].size);
   return agg;
 }
+// Total semua kategori untuk SATU tanggal tertentu (dipakai kalender Produksi).
+function aggDate(ds){
+  const o={limbah_masuk:0,maggot_keluar:0,pupuk_keluar:0,nutrien_masuk:0,nutrien_keluar:0,telur_masuk:0,telur_keluar:0,panen_count:0,pangkas_count:0};
+  const map=window.LIVE_MAP; if(!map||!ds) return o;
+  (map.limbah||[]).forEach(x=>{ if(normDate(x.tgl_masuk)===ds && String(x['input/output']||'').toLowerCase()!=='keluar') o.limbah_masuk+=toNum(x.bobot_kg); });
+  (map.panen||[]).forEach(x=>{ if(normDate(x.tgl_panen)===ds){ o.maggot_keluar+=toNum(x.bobot_bersih_kg||x.bobot_kotor_kg); o.panen_count++; } });
+  (map.pupuk||[]).forEach(x=>{ if(normDate(x.tgl_transaksi)===ds && String(x.tipe||'').toLowerCase()==='keluar') o.pupuk_keluar+=toNum(x.bobot_kg); });
+  (map.nutrien||[]).forEach(x=>{ if(normDate(x.tgl_transaksi)===ds){ const j=String(x.jenis||'').toLowerCase(),tp=String(x.tipe||'').toLowerCase(),a=toNum(x.jumlah);
+    if(j==='nutrien'&&tp==='masuk')o.nutrien_masuk+=a; if(j==='nutrien'&&tp==='keluar')o.nutrien_keluar+=a;
+    if(j==='telur'&&tp==='masuk')o.telur_masuk+=a; if(j==='telur'&&tp==='keluar')o.telur_keluar+=a; } });
+  (map.pangkas||[]).forEach(x=>{ if(normDate(x.tgl_pangkas)===ds)o.pangkas_count++; });
+  return o;
+}
+// Kumpulan tanggal (angka hari) yang punya data, untuk bulan tampilan kalender.
+function datesWithData(year,month){
+  const set=new Set(); const map=window.LIVE_MAP; if(!map) return set;
+  const pref=`${year}-${String(month+1).padStart(2,'0')}-`;
+  const add=ds=>{ ds=normDate(ds); if(ds&&ds.indexOf(pref)===0) set.add(+ds.slice(8,10)); };
+  (map.limbah||[]).forEach(o=>add(o.tgl_masuk));
+  (map.panen||[]).forEach(o=>add(o.tgl_panen));
+  (map.pupuk||[]).forEach(o=>add(o.tgl_transaksi));
+  (map.nutrien||[]).forEach(o=>add(o.tgl_transaksi));
+  (map.pangkas||[]).forEach(o=>add(o.tgl_pangkas));
+  return set;
+}
 function setTxt(id,v){const e=document.getElementById(id); if(e)e.textContent=v;}
 function r0(n){return Math.round(n).toLocaleString('id-ID');}
 function updateOverviewLive(a){
@@ -1021,7 +1062,7 @@ async function loadLive(){
     window.LIVE=computeAgg(map);
     updateOverviewLive(window.LIVE);
     updateLaporanLive();
-    if(document.getElementById('page-produksi').classList.contains('active')) renderProd(curPTab);
+    if(document.getElementById('page-produksi').classList.contains('active')){ buildCal(); renderProd(curPTab); }
 
     // master biopond (rak & batch) — paralel, tidak blok kartu di atas
     Promise.all([gvizLoad('_rak').catch(()=>[]), gvizLoad('_batch').catch(()=>[])])
