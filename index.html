@@ -4,6 +4,43 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Instech — Site Garudafood</title>
+<!-- ══ AUTH GATE (Firebase) — sembunyikan dashboard sampai login terverifikasi ══ -->
+<style id="authGateStyle">body{visibility:hidden}</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script>
+(function(){
+  var firebaseConfig = {
+    apiKey: "AIzaSyAjMss-6kjiumWlV9b0zSb0zbngeWhZNYs",
+    authDomain: "dashboard-monitoring---instech.firebaseapp.com",
+    projectId: "dashboard-monitoring---instech",
+    storageBucket: "dashboard-monitoring---instech.firebasestorage.app",
+    messagingSenderId: "407393844797",
+    appId: "1:407393844797:web:f83b473acb962d246d3454"
+  };
+  var LOGIN_URL = "https://sidiqgrahita07-creator.github.io/instech-web/login.html";
+  function reveal(){ var s=document.getElementById('authGateStyle'); if(s) s.remove(); }
+  // Fail-safe: kalau Firebase gagal dimuat dalam 12 dtk, tetap tampilkan (hindari brick).
+  var failSafe = setTimeout(function(){ if(typeof firebase==='undefined') reveal(); }, 12000);
+  window.doLogout = function(){
+    if(typeof firebase!=='undefined' && firebase.auth){
+      firebase.auth().signOut().then(function(){ window.location.replace(LOGIN_URL); });
+    }
+  };
+  if(typeof firebase==='undefined') return; // gagal load → failSafe yg tampilkan
+  firebase.initializeApp(firebaseConfig);
+  firebase.auth().onAuthStateChanged(function(user){
+    clearTimeout(failSafe);
+    if(user){
+      reveal();
+      var lo=document.getElementById('logoutBtn');
+      if(lo){ lo.style.display='flex'; lo.title='Keluar — '+(user.email||''); }
+    } else {
+      window.location.replace(LOGIN_URL);
+    }
+  });
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -326,6 +363,10 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);c
       <div class="tb-right">
         <span class="tb-date" id="tb-date">—</span>
         <span class="tb-badge">● Aktif</span>
+        <button id="logoutBtn" onclick="doLogout()" style="display:none;cursor:pointer;border:1px solid var(--cream3);background:var(--white);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:11px;padding:5px 10px;border-radius:var(--r-sm);display:flex;align-items:center;gap:5px;" title="Keluar">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Logout
+        </button>
       </div>
     </div>
 
