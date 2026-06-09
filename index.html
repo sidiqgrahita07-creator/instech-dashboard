@@ -795,36 +795,30 @@ function renderProd(t){
   const el=document.getElementById('prod-content');
   ['ch-bar','ch-pie','ch-line','ch-bar2'].forEach(id=>{if(chartInstances[id]){chartInstances[id].destroy();delete chartInstances[id];}});
   const days7=['Sn','Sl','Rb','Km','Jm','Sb','Mg'],weeks4=['Mg 1','Mg 2','Mg 3','Mg 4'],months6=['Jan','Feb','Mar','Apr','Mei','Jun'];
-  const L=window.LIVE;
-  const D = (t==='harian') ? aggDate(selDateStr) : null;   // harian = tanggal yg dipilih di kalender
-  const gv = cat => D ? D[cat] : (L ? L[cat][t] : 0);
-  const rows = (L||D) ? [
+  const _pb=periodBounds(selDateStr,t);   // tanggal terpilih → rentang harian/mingguan/bulanan/tahunan
+  const D=aggBetween(_pb.start,_pb.end);
+  const gv=cat=>D[cat];
+  const rows=[
     {cat:'Limbah', masuk:Math.round(gv('limbah_masuk')),  keluar:null,                          sat:'kg'},
     {cat:'Maggot', masuk:null,                            keluar:Math.round(gv('maggot_keluar')), sat:'kg'},
     {cat:'Telur',  masuk:Math.round(gv('telur_masuk')),   keluar:Math.round(gv('telur_keluar')),  sat:'gram'},
     {cat:'Pupuk',  masuk:null,                            keluar:Math.round(gv('pupuk_keluar')),  sat:'kg'},
     {cat:'Nutrien',masuk:Math.round(gv('nutrien_masuk')), keluar:Math.round(gv('nutrien_keluar')),sat:'kg'},
-  ] : [
-    {cat:'Limbah',masuk:t==='harian'?380:t==='mingguan'?2660:t==='bulanan'?9400:112000,keluar:null,sat:'kg'},
-    {cat:'Maggot',masuk:null,keluar:t==='harian'?42:t==='mingguan'?294:t==='bulanan'?1100:13200,sat:'kg'},
-    {cat:'Telur',masuk:t==='harian'?850:t==='mingguan'?5950:t==='bulanan'?21000:252000,keluar:t==='harian'?200:t==='mingguan'?1400:t==='bulanan'?5000:60000,sat:'gram'},
-    {cat:'Pupuk',masuk:null,keluar:t==='harian'?95:t==='mingguan'?665:t==='bulanan'?2400:28800,sat:'kg'},
-    {cat:'Nutrien',masuk:t==='harian'?18:t==='mingguan'?126:t==='bulanan'?450:5400,keluar:t==='harian'?5:t==='mingguan'?35:t==='bulanan'?125:1500,sat:'kg'},
   ];
   rows.forEach(r=>{const m=r.masuk||0,k=r.keluar||0,net=m-k;r.saldo=net>=0?'+'+net.toLocaleString():net.toLocaleString();});
 
   let html='';
   if(t==='harian'){
-    html+=`<div class="chart-grid"><div class="chart-box"><div class="chart-title">Masuk vs Keluar</div><div class="chart-sub">Volume hari ini (kg)</div><div class="cleg"><span><span class="cleg-dot" style="background:#4A7B8C;"></span>Masuk</span><span><span class="cleg-dot" style="background:#D85A30;"></span>Keluar</span></div><div style="position:relative;height:160px;"><canvas id="ch-bar"></canvas></div></div><div class="chart-box"><div class="chart-title">Distribusi output</div><div class="chart-sub">Proporsi keluar hari ini</div><div class="cleg"><span><span class="cleg-dot" style="background:#378ADD;"></span>Maggot</span><span><span class="cleg-dot" style="background:#639922;"></span>Pupuk</span><span><span class="cleg-dot" style="background:#BA7517;"></span>Nutrien</span></div><div style="position:relative;height:160px;"><canvas id="ch-pie"></canvas></div></div></div>`;
+    html+=`<div class="chart-grid"><div class="chart-box"><div class="chart-title">Masuk vs Keluar</div><div class="chart-sub">Volume ${rangeLabel(selDateStr,'harian')} (kg)</div><div class="cleg"><span><span class="cleg-dot" style="background:#4A7B8C;"></span>Masuk</span><span><span class="cleg-dot" style="background:#D85A30;"></span>Keluar</span></div><div style="position:relative;height:160px;"><canvas id="ch-bar"></canvas></div></div><div class="chart-box"><div class="chart-title">Distribusi output</div><div class="chart-sub">Proporsi keluar ${rangeLabel(selDateStr,'harian')}</div><div class="cleg"><span><span class="cleg-dot" style="background:#378ADD;"></span>Maggot</span><span><span class="cleg-dot" style="background:#639922;"></span>Pupuk</span><span><span class="cleg-dot" style="background:#BA7517;"></span>Nutrien</span></div><div style="position:relative;height:160px;"><canvas id="ch-pie"></canvas></div></div></div>`;
   } else if(t==='mingguan'){
-    html+=`<div class="chart-grid"><div class="chart-box full"><div class="chart-title">Tren harian minggu ini</div><div class="chart-sub">Limbah masuk, maggot & pupuk (kg)</div><div class="cleg"><span><span class="cleg-dot" style="background:#4A7B8C;"></span>Limbah</span><span><span class="cleg-dot" style="background:#378ADD;"></span>Maggot</span><span><span class="cleg-dot" style="background:#639922;"></span>Pupuk</span></div><div style="position:relative;height:180px;"><canvas id="ch-line"></canvas></div></div></div>`;
+    html+=`<div class="chart-grid"><div class="chart-box full"><div class="chart-title">Tren harian · ${rangeLabel(selDateStr,'mingguan')}</div><div class="chart-sub">Limbah masuk, maggot & pupuk (kg)</div><div class="cleg"><span><span class="cleg-dot" style="background:#4A7B8C;"></span>Limbah</span><span><span class="cleg-dot" style="background:#378ADD;"></span>Maggot</span><span><span class="cleg-dot" style="background:#639922;"></span>Pupuk</span></div><div style="position:relative;height:180px;"><canvas id="ch-line"></canvas></div></div></div>`;
   } else if(t==='bulanan'){
-    html+=`<div class="chart-grid"><div class="chart-box full"><div class="chart-title">Tren mingguan bulan ini</div><div class="chart-sub">Per minggu (kg)</div><div class="cleg"><span><span class="cleg-dot" style="background:#4A7B8C;"></span>Limbah</span><span><span class="cleg-dot" style="background:#378ADD;"></span>Maggot</span><span><span class="cleg-dot" style="background:#639922;"></span>Pupuk</span></div><div style="position:relative;height:180px;"><canvas id="ch-bar2"></canvas></div></div></div>`;
+    html+=`<div class="chart-grid"><div class="chart-box full"><div class="chart-title">Tren harian · ${rangeLabel(selDateStr,'bulanan')}</div><div class="chart-sub">Per hari (kg)</div><div class="cleg"><span><span class="cleg-dot" style="background:#4A7B8C;"></span>Limbah</span><span><span class="cleg-dot" style="background:#378ADD;"></span>Maggot</span><span><span class="cleg-dot" style="background:#639922;"></span>Pupuk</span></div><div style="position:relative;height:180px;"><canvas id="ch-bar2"></canvas></div></div></div>`;
   } else {
-    html+=`<div class="chart-grid"><div class="chart-box full"><div class="chart-title">Tren produksi tahunan</div><div class="chart-sub">Jan–Jun 2026 (ton)</div><div class="cleg"><span><span class="cleg-dot" style="background:#4A7B8C;"></span>Limbah</span><span><span class="cleg-dot" style="background:#378ADD;"></span>Maggot</span><span><span class="cleg-dot" style="background:#639922;"></span>Pupuk</span></div><div style="position:relative;height:180px;"><canvas id="ch-line"></canvas></div></div></div>`;
+    html+=`<div class="chart-grid"><div class="chart-box full"><div class="chart-title">Tren produksi tahunan</div><div class="chart-sub">Tahun ${selDateStr.slice(0,4)} (kg)</div><div class="cleg"><span><span class="cleg-dot" style="background:#4A7B8C;"></span>Limbah</span><span><span class="cleg-dot" style="background:#378ADD;"></span>Maggot</span><span><span class="cleg-dot" style="background:#639922;"></span>Pupuk</span></div><div style="position:relative;height:180px;"><canvas id="ch-line"></canvas></div></div></div>`;
   }
 
-  html+=`<div class="sc"><div class="sc-head"><div class="sc-title">Pergerakan stok</div><div class="sc-sub">${t==='harian'?fmtTgl(selDateStr):t==='mingguan'?'Minggu ini':t==='bulanan'?'Jun 2026':'Jan–Jun 2026'}</div></div><div class="sc-body" style="padding:0 14px;overflow-x:auto;"><table class="dt"><thead><tr><th>Kategori</th><th>Masuk</th><th>Keluar</th><th>Saldo</th><th>Sat.</th></tr></thead><tbody>`;
+  html+=`<div class="sc"><div class="sc-head"><div class="sc-title">Pergerakan stok</div><div class="sc-sub">${rangeLabel(selDateStr,t)}</div></div><div class="sc-body" style="padding:0 14px;overflow-x:auto;"><table class="dt"><thead><tr><th>Kategori</th><th>Masuk</th><th>Keluar</th><th>Saldo</th><th>Sat.</th></tr></thead><tbody>`;
   rows.forEach(r=>{
     const mi=r.masuk?`<span class="in-val">${r.masuk.toLocaleString()}</span>`:`<span class="muted">–</span>`;
     const ke=r.keluar?`<span class="out-val">${r.keluar.toLocaleString()}</span>`:`<span class="muted">–</span>`;
@@ -846,14 +840,17 @@ function renderProd(t){
       const pC=document.getElementById('ch-pie');
       if(pC)chartInstances['ch-pie']=new Chart(pC,{type:'doughnut',data:{labels:['Maggot','Pupuk','Nutrien','Telur'],datasets:[{data:dPie,backgroundColor:['#378ADD','#639922','#BA7517','#D4537E'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false}}}});
     } else if(t==='mingguan'){
+      const s=seriesDaily(_pb.start,_pb.end);
       const lC=document.getElementById('ch-line');
-      if(lC)chartInstances['ch-line']=new Chart(lC,{type:'line',data:{labels:days7,datasets:[{label:'Limbah',data:[350,380,410,390,370,360,380],borderColor:'#4A7B8C',backgroundColor:'rgba(74,123,140,0.07)',tension:0.4,borderWidth:2,pointRadius:3,fill:true},{label:'Maggot',data:[38,42,45,40,39,41,42],borderColor:'#378ADD',tension:0.4,borderWidth:2,pointRadius:3,borderDash:[4,3]},{label:'Pupuk',data:[88,95,102,90,85,92,95],borderColor:'#639922',tension:0.4,borderWidth:2,pointRadius:3,borderDash:[2,3]}]},options:{...opts}});
+      if(lC)chartInstances['ch-line']=new Chart(lC,{type:'line',data:{labels:s.labels,datasets:[{label:'Limbah',data:s.limbah,borderColor:'#4A7B8C',backgroundColor:'rgba(74,123,140,0.07)',tension:0.35,borderWidth:2,pointRadius:3,fill:true},{label:'Maggot',data:s.maggot,borderColor:'#378ADD',tension:0.35,borderWidth:2,pointRadius:3,borderDash:[4,3]},{label:'Pupuk',data:s.pupuk,borderColor:'#639922',tension:0.35,borderWidth:2,pointRadius:3,borderDash:[2,3]}]},options:{...opts}});
     } else if(t==='bulanan'){
+      const s=seriesDaily(_pb.start,_pb.end);
       const b2C=document.getElementById('ch-bar2');
-      if(b2C)chartInstances['ch-bar2']=new Chart(b2C,{type:'bar',data:{labels:weeks4,datasets:[{label:'Limbah',data:[2200,2450,2600,2150],backgroundColor:'rgba(74,123,140,0.7)',borderRadius:3},{label:'Maggot',data:[265,290,310,235],backgroundColor:'rgba(55,138,221,0.7)',borderRadius:3},{label:'Pupuk',data:[580,650,700,470],backgroundColor:'rgba(99,153,34,0.7)',borderRadius:3}]},options:{...opts}});
+      if(b2C)chartInstances['ch-bar2']=new Chart(b2C,{type:'bar',data:{labels:s.labels,datasets:[{label:'Limbah',data:s.limbah,backgroundColor:'rgba(74,123,140,0.7)',borderRadius:3},{label:'Maggot',data:s.maggot,backgroundColor:'rgba(55,138,221,0.7)',borderRadius:3},{label:'Pupuk',data:s.pupuk,backgroundColor:'rgba(99,153,34,0.7)',borderRadius:3}]},options:{...opts}});
     } else {
+      const s=seriesMonthly(+selDateStr.slice(0,4));
       const lC2=document.getElementById('ch-line');
-      if(lC2)chartInstances['ch-line']=new Chart(lC2,{type:'line',data:{labels:months6,datasets:[{label:'Limbah',data:[18.5,19.2,20.1,21.4,20.5,19.6],borderColor:'#4A7B8C',backgroundColor:'rgba(74,123,140,0.07)',tension:0.4,borderWidth:2,pointRadius:4,fill:true},{label:'Maggot',data:[2.1,2.2,2.4,2.5,2.2,2.3],borderColor:'#378ADD',tension:0.4,borderWidth:2,pointRadius:4,borderDash:[5,3]},{label:'Pupuk',data:[4.6,4.8,5.1,5.3,4.9,5.0],borderColor:'#639922',tension:0.4,borderWidth:2,pointRadius:4,borderDash:[2,3]}]},options:{...opts}});
+      if(lC2)chartInstances['ch-line']=new Chart(lC2,{type:'line',data:{labels:s.labels,datasets:[{label:'Limbah',data:s.limbah,borderColor:'#4A7B8C',backgroundColor:'rgba(74,123,140,0.07)',tension:0.4,borderWidth:2,pointRadius:4,fill:true},{label:'Maggot',data:s.maggot,borderColor:'#378ADD',tension:0.4,borderWidth:2,pointRadius:4,borderDash:[5,3]},{label:'Pupuk',data:s.pupuk,borderColor:'#639922',tension:0.4,borderWidth:2,pointRadius:4,borderDash:[2,3]}]},options:{...opts}});
     }
   },80);
 }
@@ -994,6 +991,50 @@ function datesWithData(year,month){
   (map.nutrien||[]).forEach(o=>add(o.tgl_transaksi));
   (map.pangkas||[]).forEach(o=>add(o.tgl_pangkas));
   return set;
+}
+function _fmtISO(x){return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;}
+// Rentang [start,end] periode yg memuat tanggal ds.
+function periodBounds(ds,period){
+  const a=ds.split('-').map(Number),Y=a[0],M=a[1],D=a[2],dt=new Date(Y,M-1,D);
+  if(period==='harian')   return {start:ds,end:ds};
+  if(period==='mingguan'){ const dow=(dt.getDay()+6)%7; const s=new Date(Y,M-1,D-dow),e=new Date(s); e.setDate(s.getDate()+6); return {start:_fmtISO(s),end:_fmtISO(e)}; }
+  if(period==='bulanan')  return {start:_fmtISO(new Date(Y,M-1,1)),end:_fmtISO(new Date(Y,M,0))};
+  return {start:`${Y}-01-01`,end:`${Y}-12-31`};   // tahunan
+}
+// Total semua kategori untuk rentang tanggal [start,end].
+function aggBetween(start,end){
+  const o={limbah_masuk:0,maggot_keluar:0,pupuk_keluar:0,nutrien_masuk:0,nutrien_keluar:0,telur_masuk:0,telur_keluar:0,panen_count:0,pangkas_count:0};
+  const map=window.LIVE_MAP; if(!map) return o;
+  const inR=d=>{d=normDate(d); return !!d&&d>=start&&d<=end;};
+  (map.limbah||[]).forEach(x=>{ if(inR(x.tgl_masuk)&&String(x['input/output']||'').toLowerCase()!=='keluar') o.limbah_masuk+=toNum(x.bobot_kg); });
+  (map.panen||[]).forEach(x=>{ if(inR(x.tgl_panen)){ o.maggot_keluar+=toNum(x.bobot_bersih_kg||x.bobot_kotor_kg); o.panen_count++; } });
+  (map.pupuk||[]).forEach(x=>{ if(inR(x.tgl_transaksi)&&String(x.tipe||'').toLowerCase()==='keluar') o.pupuk_keluar+=toNum(x.bobot_kg); });
+  (map.nutrien||[]).forEach(x=>{ if(inR(x.tgl_transaksi)){ const j=String(x.jenis||'').toLowerCase(),tp=String(x.tipe||'').toLowerCase(),v=toNum(x.jumlah);
+    if(j==='nutrien'&&tp==='masuk')o.nutrien_masuk+=v; if(j==='nutrien'&&tp==='keluar')o.nutrien_keluar+=v;
+    if(j==='telur'&&tp==='masuk')o.telur_masuk+=v; if(j==='telur'&&tp==='keluar')o.telur_keluar+=v; } });
+  (map.pangkas||[]).forEach(x=>{ if(inR(x.tgl_pangkas))o.pangkas_count++; });
+  return o;
+}
+const _MO=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+function rangeLabel(ds,period){
+  const b=periodBounds(ds,period),a=ds.split('-').map(Number);
+  if(period==='harian')   return fmtTgl(ds);
+  if(period==='mingguan') return fmtTgl(b.start)+' – '+fmtTgl(b.end);
+  if(period==='bulanan')  return _MO[a[1]-1]+' '+a[0];
+  return ''+a[0];
+}
+// Deret per-hari (untuk chart mingguan/bulanan) & per-bulan (tahunan).
+function seriesDaily(start,end){
+  const out={labels:[],limbah:[],maggot:[],pupuk:[]};
+  const ps=start.split('-').map(Number),pe=end.split('-').map(Number);
+  let d=new Date(ps[0],ps[1]-1,ps[2]); const e=new Date(pe[0],pe[1]-1,pe[2]);
+  while(d<=e){ const x=aggDate(_fmtISO(d)); out.labels.push(d.getDate()); out.limbah.push(x.limbah_masuk); out.maggot.push(x.maggot_keluar); out.pupuk.push(x.pupuk_keluar); d.setDate(d.getDate()+1); }
+  return out;
+}
+function seriesMonthly(year){
+  const out={labels:_MO.slice(),limbah:[],maggot:[],pupuk:[]};
+  for(let m=0;m<12;m++){ const s=`${year}-${String(m+1).padStart(2,'0')}-01`,e=_fmtISO(new Date(year,m+1,0)),x=aggBetween(s,e); out.limbah.push(x.limbah_masuk); out.maggot.push(x.maggot_keluar); out.pupuk.push(x.pupuk_keluar); }
+  return out;
 }
 function setTxt(id,v){const e=document.getElementById(id); if(e)e.textContent=v;}
 function r0(n){return Math.round(n).toLocaleString('id-ID');}
