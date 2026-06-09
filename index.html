@@ -504,22 +504,16 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);c
         </div>
         <div class="sc" style="margin-bottom:12px;">
           <div class="sc-head">
-            <div><div class="sc-title">Rekap produksi tahunan</div><div class="sc-sub">Jan–Jun 2026</div></div>
+            <div><div class="sc-title">Rekap produksi tahunan</div><div class="sc-sub" id="rekap-sub">Jan–Jun 2026</div></div>
             <div style="display:flex;gap:6px;">
               <button class="btn btn-outline btn-sm" onclick="exportSim('pdf')">PDF</button>
               <button class="btn btn-outline btn-sm" onclick="exportSim('excel')">Excel</button>
             </div>
           </div>
           <div class="sc-body" style="padding:0 14px;overflow-x:auto;">
-            <table class="dt">
-              <thead><tr><th>Kategori</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>Mei</th><th>Jun</th><th>Total</th></tr></thead>
-              <tbody>
-                <tr><td>Limbah masuk (ton)</td><td>18.5</td><td>19.2</td><td>20.1</td><td>21.4</td><td>20.5</td><td>19.6</td><td><b style="color:var(--navy);">119.3</b></td></tr>
-                <tr><td>Maggot keluar (ton)</td><td>2.1</td><td>2.2</td><td>2.4</td><td>2.5</td><td>2.2</td><td>2.3</td><td><b style="color:var(--navy);">13.7</b></td></tr>
-                <tr><td>Pupuk keluar (ton)</td><td>4.6</td><td>4.8</td><td>5.1</td><td>5.3</td><td>4.9</td><td>5.0</td><td><b style="color:var(--navy);">29.7</b></td></tr>
-                <tr><td>Nutrien (kg)</td><td>850</td><td>880</td><td>920</td><td>960</td><td>900</td><td>950</td><td><b style="color:var(--navy);">5,460</b></td></tr>
-                <tr><td>Telur (kg)</td><td>40</td><td>42</td><td>44</td><td>46</td><td>41</td><td>43</td><td><b style="color:var(--navy);">256</b></td></tr>
-              </tbody>
+            <table class="dt" id="tbl-rekap">
+              <thead><tr><th>Kategori</th><th>Jun</th><th>Total</th></tr></thead>
+              <tbody><tr><td colspan="3" style="text-align:center;color:var(--text3);padding:14px;">Memuat…</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1052,6 +1046,31 @@ function updateLaporanLive(){
   setTxt('l-pupuk', (a.pupuk_keluar.tahunan/1000).toFixed(1));
   const eff=a.limbah_masuk.tahunan? (a.maggot_keluar.tahunan/a.limbah_masuk.tahunan*100):0;
   setTxt('l-efis',eff.toFixed(1));
+  buildRekap();
+}
+// Tabel rekap bulanan (Jan..bulan berjalan) dari data asli.
+function buildRekap(){
+  const tbl=document.getElementById('tbl-rekap'); if(!tbl||!window.LIVE_MAP) return;
+  const year=+selDateStr.slice(0,4);
+  const upto=(new Date().getFullYear()===year)? new Date().getMonth() : 11;
+  const mIdx=[]; for(let m=0;m<=upto;m++) mIdx.push(m);
+  const data=mIdx.map(m=>aggBetween(`${year}-${String(m+1).padStart(2,'0')}-01`,_fmtISO(new Date(year,m+1,0))));
+  const fmtN=(v,dec)=>v?(+v.toFixed(dec)).toLocaleString('id-ID'):'';
+  const rowDefs=[
+    {lbl:'Limbah masuk (ton)', f:d=>d.limbah_masuk/1000, dec:2},
+    {lbl:'Maggot keluar (ton)',f:d=>d.maggot_keluar/1000,dec:2},
+    {lbl:'Pupuk keluar (ton)', f:d=>d.pupuk_keluar/1000, dec:2},
+    {lbl:'Nutrien (kg)',       f:d=>d.nutrien_masuk,      dec:0},
+    {lbl:'Telur (gram)',       f:d=>d.telur_masuk,        dec:0},
+  ];
+  let h='<thead><tr><th>Kategori</th>'+mIdx.map(m=>`<th>${_MO[m]}</th>`).join('')+'<th>Total</th></tr></thead><tbody>';
+  rowDefs.forEach(rd=>{
+    let tot=0;
+    const cells=data.map(d=>{const v=rd.f(d);tot+=v;return `<td>${v?fmtN(v,rd.dec):'<span class="muted">–</span>'}</td>`;}).join('');
+    h+=`<tr><td>${rd.lbl}</td>${cells}<td><b style="color:var(--navy);">${tot?fmtN(tot,rd.dec):'0'}</b></td></tr>`;
+  });
+  tbl.innerHTML=h+'</tbody>';
+  const sub=document.getElementById('rekap-sub'); if(sub) sub.textContent=`Jan–${_MO[upto]} ${year}`;
 }
 
 // ── BIOPOND dari master Rak_Biopond + Batch_Siklus ──
