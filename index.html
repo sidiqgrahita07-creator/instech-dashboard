@@ -488,6 +488,46 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);c
           <div class="mc"><div class="mc-lbl">Rata-rata</div><div class="mc-val">42<span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px;">kg</span></div><div class="mc-sub">Maggot/hari</div></div>
           <div class="mc"><div class="mc-lbl">Siklus selesai</div><div class="mc-val">47<span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px;">batch</span></div><div class="mc-sub">YTD</div></div>
         </div>
+
+        <style>
+          .doc-in{padding:7px 9px;border:1px solid var(--cream3);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;background:#fff;color:var(--text1);}
+          .doc-in:focus{outline:none;border-color:var(--steel);}
+          #doc-items input{width:100%;padding:5px 6px;border:1px solid var(--cream3);border-radius:5px;font-size:12px;font-family:inherit;background:#fff;}
+          #doc-items input:focus{outline:none;border-color:var(--steel);}
+        </style>
+        <div class="sc" id="doc-card" style="margin-bottom:12px;">
+          <div class="sc-head"><div><div class="sc-title">🧾 Buat Invoice &amp; Surat Jalan</div><div class="sc-sub">Isi data → cetak / simpan PDF</div></div></div>
+          <div class="sc-body" style="padding:14px;font-size:12px;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:12px;">
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">Nama Pelanggan<input id="doc-cust" class="doc-in" placeholder="mis. PT Garudafood"></label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">Alamat<input id="doc-addr" class="doc-in" placeholder="Alamat pengiriman"></label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">Tanggal<input type="date" id="doc-date" class="doc-in"></label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">No. Invoice<input id="doc-no-inv" class="doc-in"></label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">No. Surat Jalan<input id="doc-no-sj" class="doc-in"></label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">Kendaraan / Sopir<input id="doc-veh" class="doc-in" placeholder="opsional"></label>
+            </div>
+            <div style="background:var(--cream);border-radius:8px;padding:10px;margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;">
+              <div style="font-weight:600;width:100%;color:var(--text1);">⚙️ Tarik dari data limbah masuk (rutin):</div>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">Dari<input type="date" id="doc-lim-start" class="doc-in"></label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">Sampai<input type="date" id="doc-lim-end" class="doc-in"></label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">Tarif (Rp/kg)<input type="number" id="doc-lim-rate" class="doc-in" value="0" style="width:110px;"></label>
+              <button class="btn btn-outline btn-sm" onclick="pullLimbah()">+ Tambah sebagai item</button>
+              <span id="doc-lim-info" style="color:var(--text3);"></span>
+            </div>
+            <div style="overflow-x:auto;">
+            <table class="dt" style="margin-bottom:8px;min-width:560px;"><thead><tr><th>Deskripsi</th><th style="width:80px;">Qty</th><th style="width:70px;">Satuan</th><th style="width:120px;">Harga (Rp)</th><th style="width:120px;">Jumlah</th><th style="width:34px;"></th></tr></thead><tbody id="doc-items"></tbody></table>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="addDocItem()">+ Baris barang</button>
+            <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-top:12px;">
+              <label style="display:flex;align-items:center;gap:6px;color:var(--text2);"><input type="checkbox" id="doc-ppn">PPN 11%</label>
+              <label style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:200px;color:var(--text2);">Catatan<input id="doc-note" class="doc-in" placeholder="mis. Pembayaran transfer BCA 1234567890 a.n. PT Instech"></label>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+              <button class="btn" style="background:var(--navy);color:#fff;" onclick="genDoc('invoice')">🧾 Pratinjau Invoice</button>
+              <button class="btn btn-outline" onclick="genDoc('suratjalan')">🚚 Pratinjau Surat Jalan</button>
+            </div>
+          </div>
+        </div>
         <div class="chart-grid">
           <div class="chart-box">
             <div class="chart-title">Efisiensi konversi</div>
@@ -853,6 +893,7 @@ function renderProd(t){
 let laporanInit=false;
 function initLaporan(){
   updateLaporanLive();
+  docInit();
   if(laporanInit)return; laporanInit=true;
   const months6=['Jan','Feb','Mar','Apr','Mei','Jun'];
   setTimeout(()=>{
@@ -868,6 +909,129 @@ function exportSim(type){
   const t=document.getElementById('export-toast'),m=document.getElementById('export-msg');
   t.style.display='flex';m.textContent=msgs[type]||'Selesai';
   setTimeout(()=>{t.style.display='none';},2500);
+}
+
+// ═══ INVOICE & SURAT JALAN ═══════════════════════════════════════════════════
+const CO={name:'PT INSTECH SOLUSI NUSANTARA',sub:'a ZEKINDO company',
+  addr:'Jl. Sungkai, Delta Silicon, Cikarang, Jawa Barat',
+  contact:'instech.nusantara@gmail.com · www.instech.co.id'};
+let docItems=[];
+function escH(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmtRp(n){return 'Rp '+Math.round(n||0).toLocaleString('id-ID');}
+function fmtTglFull(s){if(!s)return'-';const p=String(s).split('-');if(p.length<3)return s;const mo=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];return `${+p[2]} ${mo[+p[1]-1]||''} ${p[0]}`;}
+function terbilang(n){
+  n=Math.abs(Math.round(n||0)); const sat=['','satu','dua','tiga','empat','lima','enam','tujuh','delapan','sembilan','sepuluh','sebelas'];
+  function t(x){
+    if(x<12)return sat[x];
+    if(x<20)return t(x-10)+' belas';
+    if(x<100)return t(Math.floor(x/10))+' puluh'+(x%10?' '+t(x%10):'');
+    if(x<200)return 'seratus'+(x%100?' '+t(x%100):'');
+    if(x<1000)return t(Math.floor(x/100))+' ratus'+(x%100?' '+t(x%100):'');
+    if(x<2000)return 'seribu'+(x%1000?' '+t(x%1000):'');
+    if(x<1000000)return t(Math.floor(x/1000))+' ribu'+(x%1000?' '+t(x%1000):'');
+    if(x<1000000000)return t(Math.floor(x/1000000))+' juta'+(x%1000000?' '+t(x%1000000):'');
+    return t(Math.floor(x/1000000000))+' miliar'+(x%1000000000?' '+t(x%1000000000):'');
+  }
+  return n===0?'nol':t(n).replace(/\s+/g,' ').trim();
+}
+function docInit(){
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  const iso=`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+  const st=`${p(d.getDate())}${p(d.getMonth()+1)}${String(d.getFullYear()).slice(2)}/${p(d.getHours())}${p(d.getMinutes())}`;
+  const set=(id,v)=>{const e=document.getElementById(id);if(e&&!e.value)e.value=v;};
+  set('doc-date',iso);set('doc-no-inv','INV/'+st);set('doc-no-sj','SJ/'+st);set('doc-lim-end',iso);
+  if(docItems.length===0)docItems.push({desc:'',qty:'',sat:'kg',harga:''});
+  renderDocItems();
+}
+function addDocItem(desc,qty,sat,harga){docItems.push({desc:desc||'',qty:qty==null?'':qty,sat:sat||'kg',harga:harga==null?'':harga});renderDocItems();}
+function removeDocItem(i){docItems.splice(i,1);if(docItems.length===0)docItems.push({desc:'',qty:'',sat:'kg',harga:''});renderDocItems();}
+function docUpd(i,k,v){docItems[i][k]=v;if(k==='qty'||k==='harga'){const c=document.getElementById('doc-jml-'+i);if(c)c.textContent=fmtRp((parseFloat(docItems[i].qty)||0)*(parseFloat(docItems[i].harga)||0));}}
+function renderDocItems(){
+  const tb=document.getElementById('doc-items');if(!tb)return;
+  tb.innerHTML=docItems.map((it,i)=>{const jml=(parseFloat(it.qty)||0)*(parseFloat(it.harga)||0);return `<tr>
+    <td><input value="${escH(it.desc)}" oninput="docUpd(${i},'desc',this.value)" placeholder="Nama barang / jasa"></td>
+    <td><input type="number" step="any" value="${it.qty}" oninput="docUpd(${i},'qty',this.value)"></td>
+    <td><input value="${escH(it.sat)}" oninput="docUpd(${i},'sat',this.value)"></td>
+    <td><input type="number" step="any" value="${it.harga}" oninput="docUpd(${i},'harga',this.value)"></td>
+    <td id="doc-jml-${i}" style="text-align:right;white-space:nowrap;">${fmtRp(jml)}</td>
+    <td><button class="btn btn-outline btn-sm" onclick="removeDocItem(${i})" title="Hapus">✕</button></td></tr>`;}).join('');
+}
+function pullLimbah(){
+  const s=document.getElementById('doc-lim-start').value,e=document.getElementById('doc-lim-end').value;
+  if(!s||!e){alert('Isi rentang tanggal limbah dulu (Dari & Sampai).');return;}
+  const kg=window.LIVE_MAP?aggBetween(s,e).limbah_masuk:0;
+  const rate=parseFloat(document.getElementById('doc-lim-rate').value)||0;
+  addDocItem(`Jasa pengelolaan limbah organik (${fmtTgl(s)}–${fmtTgl(e)})`,Math.round(kg*100)/100,'kg',rate);
+  document.getElementById('doc-lim-info').textContent=`✓ ${kg.toLocaleString('id-ID')} kg ditambahkan`;
+}
+function collectDoc(){
+  const g=id=>{const e=document.getElementById(id);return e?e.value:'';};
+  const items=docItems.filter(it=>String(it.desc).trim()||it.qty||it.harga).map(it=>({desc:it.desc,qty:parseFloat(it.qty)||0,sat:it.sat,harga:parseFloat(it.harga)||0}));
+  const sub=items.reduce((a,it)=>a+it.qty*it.harga,0);
+  const ppn=document.getElementById('doc-ppn').checked?sub*0.11:0;
+  return {cust:g('doc-cust'),addr:g('doc-addr'),date:g('doc-date'),noInv:g('doc-no-inv'),noSj:g('doc-no-sj'),veh:g('doc-veh'),note:g('doc-note'),items,sub,ppn,total:sub+ppn};
+}
+function docShell(title,body){
+  return `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>${title} — Instech</title><style>
+  *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;}
+  body{padding:30px;color:#1B2B4B;font-size:13px;}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1B2B4B;padding-bottom:12px;}
+  .co{font-size:17px;font-weight:800;color:#1B2B4B;}
+  .co-sub{font-size:11px;color:#777;font-style:italic;}
+  .co-addr{font-size:11px;color:#555;margin-top:5px;max-width:300px;line-height:1.5;}
+  .title{font-size:28px;font-weight:800;letter-spacing:2px;color:#4A7B8C;text-align:right;}
+  .meta{display:flex;justify-content:space-between;margin:20px 0;font-size:12px;line-height:1.6;}
+  .r{text-align:right;}
+  table.doc-t{width:100%;border-collapse:collapse;margin-top:6px;font-size:12px;}
+  table.doc-t th{background:#1B2B4B;color:#fff;padding:8px;text-align:left;}
+  table.doc-t td{border:1px solid #ddd;padding:7px 8px;}
+  .tot{display:flex;justify-content:flex-end;margin-top:12px;}
+  .tot table td{padding:4px 12px;font-size:13px;}
+  .tot .grand td{font-weight:800;font-size:15px;border-top:2px solid #1B2B4B;color:#1B2B4B;}
+  .terbilang{margin-top:12px;font-size:12px;font-style:italic;color:#444;}
+  .note{margin-top:14px;font-size:12px;background:#F5F0E8;padding:8px 10px;border-radius:5px;}
+  .sign{display:flex;justify-content:space-between;margin-top:50px;font-size:12px;text-align:center;}
+  .sign>div{width:42%;}
+  .noprint{margin-top:28px;text-align:center;}
+  .btn-print{background:#1B2B4B;color:#fff;border:none;padding:11px 26px;border-radius:6px;font-size:14px;cursor:pointer;}
+  @media print{.noprint{display:none;}body{padding:6px;}}
+  </style></head><body>
+  <div class="head"><div><div class="co">${CO.name}</div><div class="co-sub">${CO.sub}</div><div class="co-addr">${CO.addr}<br>${CO.contact}</div></div><div class="title">${title}</div></div>
+  ${body}
+  <div class="noprint"><button class="btn-print" onclick="window.print()">🖨️ Cetak / Simpan PDF</button></div>
+  </body></html>`;
+}
+function invoiceHTML(d){
+  const rows=d.items.map((it,i)=>`<tr><td>${i+1}</td><td>${escH(it.desc)}</td><td class="r">${it.qty.toLocaleString('id-ID')}</td><td>${escH(it.sat)}</td><td class="r">${fmtRp(it.harga)}</td><td class="r">${fmtRp(it.qty*it.harga)}</td></tr>`).join('');
+  return docShell('INVOICE',`
+    <div class="meta"><div><b>Kepada:</b><br>${escH(d.cust||'-')}<br>${escH(d.addr||'')}</div>
+      <div class="r"><b>No:</b> ${escH(d.noInv)}<br><b>Tanggal:</b> ${fmtTglFull(d.date)}</div></div>
+    <table class="doc-t"><thead><tr><th>No</th><th>Deskripsi</th><th class="r">Qty</th><th>Sat.</th><th class="r">Harga</th><th class="r">Jumlah</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="tot"><table>
+      <tr><td>Subtotal</td><td class="r">${fmtRp(d.sub)}</td></tr>
+      ${d.ppn?`<tr><td>PPN 11%</td><td class="r">${fmtRp(d.ppn)}</td></tr>`:''}
+      <tr class="grand"><td>TOTAL</td><td class="r">${fmtRp(d.total)}</td></tr>
+    </table></div>
+    <div class="terbilang">Terbilang: ${terbilang(d.total)} rupiah</div>
+    ${d.note?`<div class="note"><b>Catatan:</b> ${escH(d.note)}</div>`:''}
+    <div class="sign"><div>Hormat kami,<br><br><br><br>(__________________)<br>PT Instech Solusi Nusantara</div><div>Diterima oleh,<br><br><br><br>(__________________)</div></div>`);
+}
+function suratJalanHTML(d){
+  const rows=d.items.map((it,i)=>`<tr><td>${i+1}</td><td>${escH(it.desc)}</td><td class="r">${it.qty.toLocaleString('id-ID')}</td><td>${escH(it.sat)}</td><td></td></tr>`).join('');
+  return docShell('SURAT JALAN',`
+    <div class="meta"><div><b>Kepada:</b><br>${escH(d.cust||'-')}<br>${escH(d.addr||'')}</div>
+      <div class="r"><b>No:</b> ${escH(d.noSj)}<br><b>Tanggal:</b> ${fmtTglFull(d.date)}${d.veh?`<br><b>Kendaraan/Sopir:</b> ${escH(d.veh)}`:''}</div></div>
+    <table class="doc-t"><thead><tr><th>No</th><th>Nama Barang</th><th class="r">Jumlah</th><th>Satuan</th><th>Keterangan</th></tr></thead><tbody>${rows}</tbody></table>
+    ${d.note?`<div class="note"><b>Catatan:</b> ${escH(d.note)}</div>`:''}
+    <div class="sign"><div>Hormat kami,<br>Pengirim,<br><br><br>(__________________)</div><div>Penerima,<br><br><br><br>(__________________)</div></div>`);
+}
+function genDoc(type){
+  const d=collectDoc();
+  if(d.items.length===0){alert('Tambahkan minimal 1 barang/jasa dulu.');return;}
+  const html=type==='invoice'?invoiceHTML(d):suratJalanHTML(d);
+  const w=window.open('','_blank');
+  if(!w){alert('Popup diblokir browser — izinkan popup untuk situs ini, lalu coba lagi.');return;}
+  w.document.write(html);w.document.close();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
