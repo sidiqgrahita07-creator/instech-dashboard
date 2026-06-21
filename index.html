@@ -19,6 +19,25 @@
     appId: "1:407393844797:web:f83b473acb962d246d3454"
   };
   var LOGIN_URL = "https://sidiqgrahita07-creator.github.io/instech-web/login.html";
+  // ── Role: siapa yang boleh EDIT (Editor). Sisanya = hanya-lihat. ──
+  var EDITOR_DOMAINS = ['instech.co.id'];                 // semua @instech.co.id = Editor
+  var EDITOR_EMAILS  = ['sidiqgrahita07@gmail.com'];      // admin tambahan di luar domain (boleh dihapus)
+  function isEditor(email){
+    email=(email||'').toLowerCase().trim();
+    if(EDITOR_EMAILS.indexOf(email)!==-1) return true;
+    return EDITOR_DOMAINS.some(function(d){ return email.endsWith('@'+d); });
+  }
+  function applyRole(user){
+    var ed=window.IS_EDITOR;
+    document.querySelectorAll('[data-editor-only]').forEach(function(el){ el.style.display = ed?'':'none'; });
+    var b=document.getElementById('role-badge');
+    if(b){
+      b.textContent = (ed?'✎ Editor':'👁 Hanya-lihat') + ' · ' + ((user&&user.email)||'');
+      b.style.background = ed?'#2E7D5E':'#8098B0';
+      b.style.display='inline-flex';
+    }
+  }
+  window.applyRole = function(){ applyRole(window.__user); };
   function reveal(){ var s=document.getElementById('authGateStyle'); if(s) s.remove(); }
   // Fail-safe: kalau Firebase gagal dimuat dalam 12 dtk, tetap tampilkan (hindari brick).
   var failSafe = setTimeout(function(){ if(typeof firebase==='undefined') reveal(); }, 12000);
@@ -32,9 +51,13 @@
   firebase.auth().onAuthStateChanged(function(user){
     clearTimeout(failSafe);
     if(user){
+      window.__user = user;
+      window.IS_EDITOR = isEditor(user.email);
       reveal();
       var lo=document.getElementById('logoutBtn');
       if(lo){ lo.style.display='flex'; lo.title='Keluar — '+(user.email||''); }
+      applyRole(user);
+      document.addEventListener('DOMContentLoaded', function(){ applyRole(user); });
     } else {
       window.location.replace(LOGIN_URL);
     }
@@ -361,6 +384,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);c
         </div>
       </div>
       <div class="tb-right">
+        <span id="role-badge" style="display:none;align-items:center;font-size:10px;font-weight:600;color:#fff;padding:3px 9px;border-radius:10px;background:#8098B0;white-space:nowrap;">—</span>
         <span class="tb-date" id="tb-date">—</span>
         <span class="tb-badge">● Aktif</span>
         <button id="logoutBtn" onclick="doLogout()" style="display:none;cursor:pointer;border:1px solid var(--cream3);background:var(--white);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:11px;padding:5px 10px;border-radius:var(--r-sm);display:flex;align-items:center;gap:5px;" title="Keluar">
@@ -495,7 +519,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);c
           #doc-items input{width:100%;padding:5px 6px;border:1px solid var(--cream3);border-radius:5px;font-size:12px;font-family:inherit;background:#fff;}
           #doc-items input:focus{outline:none;border-color:var(--steel);}
         </style>
-        <div class="sc" id="doc-card" style="margin-bottom:12px;">
+        <div class="sc" id="doc-card" data-editor-only style="margin-bottom:12px;">
           <div class="sc-head"><div><div class="sc-title">🧾 Buat Invoice &amp; Surat Jalan</div><div class="sc-sub">Isi data → cetak / simpan PDF</div></div></div>
           <div class="sc-body" style="padding:14px;font-size:12px;">
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:12px;">
