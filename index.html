@@ -53,6 +53,8 @@
     if(user){
       window.__user = user;
       window.IS_EDITOR = isEditor(user.email);
+      // Pratinjau mode viewer: buka URL dgn ?as=viewer (utk admin cek tampilan hanya-lihat)
+      if(/[?&]as=viewer\b/i.test(location.search)) window.IS_EDITOR = false;
       reveal();
       var lo=document.getElementById('logoutBtn');
       if(lo){ lo.style.display='flex'; lo.title='Keluar — '+(user.email||''); }
