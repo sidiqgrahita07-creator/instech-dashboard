@@ -366,6 +366,9 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);c
       </button>
     </div>
     <div class="sb-footer">
+      <button onclick="openAppModal()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:7px;background:var(--steel);color:#fff;border:none;border-radius:var(--r-sm);padding:9px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:10px;">
+        📲 App Input Data
+      </button>
       <div class="sb-site-lbl">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         Garudafood Site
@@ -608,6 +611,18 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);c
     </div><!-- end content-wrap -->
   </div><!-- end main -->
 </div><!-- end app -->
+
+<!-- ── MODAL: Install App Input ── -->
+<div id="app-modal" onclick="if(event.target===this)closeAppModal()" style="display:none;position:fixed;inset:0;background:rgba(27,43,75,.55);z-index:600;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:14px;max-width:340px;width:100%;padding:22px;text-align:center;font-family:'DM Sans',sans-serif;position:relative;">
+    <button onclick="closeAppModal()" style="position:absolute;top:8px;right:12px;border:none;background:none;font-size:22px;cursor:pointer;color:#8098B0;">×</button>
+    <div style="font-size:16px;font-weight:600;color:#1B2B4B;">📲 Aplikasi Input Data</div>
+    <div style="font-size:12px;color:#4A6080;margin-top:4px;">Scan QR pakai HP, atau download langsung</div>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=190x190&data=https%3A%2F%2Fsidiqgrahita07-creator.github.io%2Finstech-dashboard%2Finstech-input.apk" alt="QR Download APK" style="width:190px;height:190px;margin:16px auto;display:block;border:1px solid #eee;border-radius:8px;">
+    <a href="instech-input.apk" download style="display:block;background:#1B2B4B;color:#fff;text-decoration:none;padding:11px;border-radius:8px;font-weight:600;font-size:13px;">⬇️ Download APK (Android)</a>
+    <div style="font-size:11px;color:#8098B0;margin-top:12px;line-height:1.5;">Tanpa install? Buka PWA:<br><a href="https://sidiqgrahita07-creator.github.io/instech-timbangan/" target="_blank" style="color:#4A7B8C;word-break:break-all;">sidiqgrahita07-creator.github.io/instech-timbangan</a></div>
+  </div>
+</div>
 
 <!-- ── BOTTOM NAV (mobile) ── -->
 <nav class="bot-nav" id="bot-nav">
@@ -930,6 +945,8 @@ function initLaporan(){
   },80);
 }
 
+function openAppModal(){const m=document.getElementById('app-modal');if(m)m.style.display='flex';}
+function closeAppModal(){const m=document.getElementById('app-modal');if(m)m.style.display='none';}
 function exportSim(type){
   const msgs={pdf:'Laporan PDF siap diunduh',excel:'File Excel siap diunduh',batch:'Riwayat batch diekspor'};
   const t=document.getElementById('export-toast'),m=document.getElementById('export-msg');
