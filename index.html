@@ -359,6 +359,11 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);c
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         Produksi
       </button>
+      <div class="sb-sec-lbl">Bisnis</div>
+      <button class="nav-btn" onclick="nav('jelantah',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8M9 2v3.5a2 2 0 0 1-.4 1.2L6 11a5 5 0 0 0-1 3v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5a5 5 0 0 0-1-3l-2.6-4.3A2 2 0 0 1 15 5.5V2"/><path d="M6 15h12"/></svg>
+        Jelantah
+      </button>
       <div class="sb-sec-lbl">Analisis</div>
       <button class="nav-btn" onclick="nav('laporan',this)">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -608,6 +613,84 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);c
         </div>
       </div>
 
+      <!-- ══ JELANTAH ══ -->
+      <div class="page" id="page-jelantah">
+        <div class="metric-grid">
+          <div class="mc"><div class="mc-lbl">Jelantah Masuk</div><div class="mc-val"><span id="jel-masuk-kg">–</span><span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px;">kg</span></div><div class="mc-sub" id="jel-masuk-rp">Rp –</div></div>
+          <div class="mc"><div class="mc-lbl">Jelantah Keluar</div><div class="mc-val"><span id="jel-keluar-kg">–</span><span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px;">kg</span></div><div class="mc-sub" id="jel-keluar-rp">Rp –</div></div>
+          <div class="mc"><div class="mc-lbl">Stok saat ini</div><div class="mc-val"><span id="jel-stok-kg">–</span><span style="font-size:10px;font-weight:400;color:var(--text3);margin-left:2px;">kg</span></div><div class="mc-sub">Masuk − Keluar</div></div>
+          <div class="mc"><div class="mc-lbl">Margin kotor</div><div class="mc-val" style="font-size:16px;" id="jel-margin">Rp –</div><div class="mc-sub">Nilai keluar − masuk</div></div>
+        </div>
+
+        <!-- PO ke Garuda -->
+        <div class="sc" id="po-card" data-editor-only style="margin-bottom:12px;">
+          <div class="sc-head"><div><div class="sc-title">📝 Buat PO ke Garuda</div><div class="sc-sub">Pembelian jelantah · simpan &amp; cetak</div></div></div>
+          <div class="sc-body" style="padding:14px;font-size:12px;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;">
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">No. PO<input id="po-no" class="doc-in"></label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">Tanggal<input type="date" id="po-date" class="doc-in"></label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">Pemasok<input id="po-pemasok" class="doc-in" value="Garuda Food"></label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">Item<input id="po-item" class="doc-in" value="Minyak jelantah"></label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">Jumlah (kg)<input type="number" step="any" id="po-qty" class="doc-in" oninput="jelPoCalc()"></label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">Harga / kg<input type="number" step="any" id="po-harga" class="doc-in" oninput="jelPoCalc()"></label>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-top:12px;">
+              <label style="display:flex;align-items:center;gap:6px;color:var(--text2);"><input type="checkbox" id="po-ppn" onchange="jelPoCalc()">PPN 11%</label>
+              <label style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:180px;color:var(--text2);">Catatan<input id="po-note" class="doc-in" placeholder="opsional"></label>
+              <div style="font-weight:700;color:var(--navy);font-size:14px;">Total: <span id="po-total">Rp 0</span></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+              <button class="btn" style="background:var(--navy);color:#fff;" onclick="jelPoSave()">💾 Simpan PO</button>
+              <button class="btn btn-outline" onclick="jelPoPrint()">🖨️ Cetak PO</button>
+              <span id="po-msg" style="color:var(--success);align-self:center;font-weight:600;"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Invoice dari Garuda Food -->
+        <div class="sc" id="inv-card" data-editor-only style="margin-bottom:12px;">
+          <div class="sc-head"><div><div class="sc-title">🧾 Input Invoice Garuda Food</div><div class="sc-sub">Tagihan dari Garuda · simpan &amp; cetak</div></div></div>
+          <div class="sc-body" style="padding:14px;font-size:12px;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;">
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">No. Invoice<input id="inv-no" class="doc-in"></label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">Tanggal<input type="date" id="inv-date" class="doc-in"></label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">No. PO terkait<input id="inv-po" class="doc-in" placeholder="opsional"></label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">Item<input id="inv-item" class="doc-in" value="Minyak jelantah"></label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">Jumlah (kg)<input type="number" step="any" id="inv-qty" class="doc-in" oninput="jelInvCalc()"></label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">Harga / kg<input type="number" step="any" id="inv-harga" class="doc-in" oninput="jelInvCalc()"></label>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-top:12px;">
+              <label style="display:flex;align-items:center;gap:6px;color:var(--text2);"><input type="checkbox" id="inv-ppn" onchange="jelInvCalc()">PPN 11%</label>
+              <label style="display:flex;flex-direction:column;gap:3px;color:var(--text2);">Status<select id="inv-status" class="doc-in"><option value="belum bayar">Belum bayar</option><option value="lunas">Lunas</option></select></label>
+              <label style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:160px;color:var(--text2);">Catatan<input id="inv-note" class="doc-in" placeholder="opsional"></label>
+              <div style="font-weight:700;color:var(--navy);font-size:14px;">Total: <span id="inv-total">Rp 0</span></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+              <button class="btn" style="background:var(--navy);color:#fff;" onclick="jelInvSave()">💾 Simpan Invoice</button>
+              <button class="btn btn-outline" onclick="jelInvPrint()">🖨️ Cetak Invoice</button>
+              <span id="inv-msg" style="color:var(--success);align-self:center;font-weight:600;"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- rekap masuk -->
+        <div class="sc" style="margin-bottom:12px;">
+          <div class="sc-head"><div><div class="sc-title">🛢️ Jelantah Masuk terbaru</div><div class="sc-sub">Live dari spreadsheet</div></div><button class="btn btn-outline btn-sm" onclick="initJelantah()">↻ Refresh</button></div>
+          <div class="sc-body" style="padding:0 14px;overflow-x:auto;">
+            <table class="dt" id="tbl-jmasuk"><thead><tr><th>Tanggal</th><th>Sumber</th><th>No. PO</th><th class="r">Jumlah</th><th class="r">Total</th></tr></thead>
+            <tbody><tr><td colspan="5" style="text-align:center;color:var(--text3);padding:14px;">Memuat…</td></tr></tbody></table>
+          </div>
+        </div>
+        <!-- rekap keluar -->
+        <div class="sc">
+          <div class="sc-head"><div><div class="sc-title">🚚 Jelantah Keluar terbaru</div><div class="sc-sub">Live dari spreadsheet</div></div></div>
+          <div class="sc-body" style="padding:0 14px;overflow-x:auto;">
+            <table class="dt" id="tbl-jkeluar"><thead><tr><th>Tanggal</th><th>Tujuan</th><th class="r">Jumlah</th><th class="r">Total</th></tr></thead>
+            <tbody><tr><td colspan="4" style="text-align:center;color:var(--text3);padding:14px;">Memuat…</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+
     </div><!-- end content-wrap -->
   </div><!-- end main -->
 </div><!-- end app -->
@@ -641,6 +724,11 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);c
     <span>Produksi</span>
     <div class="bot-nav-dot"></div>
   </button>
+  <button class="bot-nav-item" onclick="nav('jelantah',this)" id="bn-jelantah">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8M9 2v3.5a2 2 0 0 1-.4 1.2L6 11a5 5 0 0 0-1 3v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5a5 5 0 0 0-1-3l-2.6-4.3A2 2 0 0 1 15 5.5V2"/><path d="M6 15h12"/></svg>
+    <span>Jelantah</span>
+    <div class="bot-nav-dot"></div>
+  </button>
   <button class="bot-nav-item" onclick="nav('laporan',this)" id="bn-laporan">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
     <span>Laporan</span>
@@ -664,8 +752,8 @@ const H_START=9,H_END=16,SK_LO=3.6,SK_HI=3.7;
 const BD=[9,10,11,12,13,14,15,16];
 const CS_MAP={bibit:'#1D9E75',tumbuh:'#378ADD',panen:'#BA7517',harvest:'#D85A30'};
 const CT_MAP={bibit:'#04342C',tumbuh:'#042C53',panen:'#412402',harvest:'#4A1B0C'};
-const PAGE_TITLES={overview:'Overview',biopond:'Pemantauan Biopond',produksi:'Data Produksi',laporan:'Laporan & Analisis'};
-const PAGE_SUBS={overview:'Ringkasan operasional harian',biopond:'96 biopond · 24 rak · 8 batch · H9–H16',produksi:'Limbah, maggot, pupuk, telur & nutrien',laporan:'Rekap produksi & ekspor data'};
+const PAGE_TITLES={overview:'Overview',biopond:'Pemantauan Biopond',produksi:'Data Produksi',jelantah:'Jelantah',laporan:'Laporan & Analisis'};
+const PAGE_SUBS={overview:'Ringkasan operasional harian',biopond:'96 biopond · 24 rak · 8 batch · H9–H16',produksi:'Limbah, maggot, pupuk, telur & nutrien',jelantah:'Minyak jelantah · beli dari Garuda · PO & invoice',laporan:'Rekap produksi & ekspor data'};
 
 function gs(d){if(d<=10)return'bibit';if(d<=14)return'tumbuh';if(d<=15)return'panen';return'harvest';}
 function gl(s){return{bibit:'Bibit baru',tumbuh:'Tumbuh',panen:'Siap panen',harvest:'Panen hari ini'}[s];}
@@ -705,7 +793,7 @@ function nav(page,el){
   // desktop sidebar
   document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('active'));
   const sbBtns=document.querySelectorAll('.nav-btn');
-  const sbMap={overview:0,biopond:1,produksi:2,laporan:3};
+  const sbMap={overview:0,biopond:1,produksi:2,jelantah:3,laporan:4};
   if(sbBtns[sbMap[page]]) sbBtns[sbMap[page]].classList.add('active');
   // bottom nav
   document.querySelectorAll('.bot-nav-item').forEach(n=>n.classList.remove('active'));
@@ -713,6 +801,7 @@ function nav(page,el){
   if(bn) bn.classList.add('active');
   if(page==='biopond'){buildBF();buildRG();buildBPSum();}
   if(page==='produksi'){buildCal();renderProd(curPTab);}
+  if(page==='jelantah'){initJelantah();}
   if(page==='laporan'){initLaporan();}
 }
 
@@ -1076,6 +1165,93 @@ function genDoc(type){
   if(!w){alert('Popup diblokir browser — izinkan popup untuk situs ini, lalu coba lagi.');return;}
   w.document.write(html);w.document.close();
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  JELANTAH — spreadsheet sendiri (masuk/keluar + PO Garuda + Invoice Garuda)
+// ═══════════════════════════════════════════════════════════════════════════
+const JEL_SS='13KzBkCkCkXSDSAlFoqudrbgJWYVFxmO9NvcAhwPuoa0';
+const JEL_URL='https://script.google.com/macros/s/AKfycbwibCH4WGMq8QqkIlsdQ6xFJuZGmL_M2aL6G0WjA0jPdXAJYRfWXt88-X9sd9v3A9z6RA/exec';
+const JEL_GID={masuk:'0',keluar:'807171927'};
+let jelNo=0, jelDocReady=false;
+
+function jelLoad(gid){
+  return new Promise((res,rej)=>{
+    const cb='jelcb'+(jelNo++);
+    const s=document.createElement('script');
+    const clean=()=>{ try{delete window[cb];}catch(e){} s.remove(); };
+    window[cb]=r=>{ clean(); res(jelParse(r.table)); };
+    s.onerror=()=>{ clean(); rej(new Error('gviz jelantah')); };
+    s.src=`https://docs.google.com/spreadsheets/d/${JEL_SS}/gviz/tq?tqx=out:json;responseHandler:${cb}&gid=${gid}`;
+    document.body.appendChild(s);
+  });
+}
+function jelParse(tb){
+  const cols=(tb.cols||[]).map(c=>String(c.label||'').trim().toLowerCase());
+  return (tb.rows||[]).map(row=>{ const o={}; (row.c||[]).forEach((cell,i)=>{ o[cols[i]]=cell&&cell.v!=null?cell.v:''; }); return o; });
+}
+function jelFmtTgl(s){ if(!s)return'-'; const p=String(s).split('-'); return p.length===3?`${+p[2]}/${+p[1]}`:s; }
+
+async function initJelantah(){
+  try{
+    const [masuk,keluar]=await Promise.all([jelLoad(JEL_GID.masuk),jelLoad(JEL_GID.keluar)]);
+    const M=masuk.filter(r=>/^JM-/.test(String(r.jm_id||''))), K=keluar.filter(r=>/^JK-/.test(String(r.jk_id||'')));
+    const sum=(a,k)=>a.reduce((s,r)=>s+(parseFloat(r[k])||0),0);
+    const mKg=sum(M,'jumlah_kg'), mRp=sum(M,'total'), kKg=sum(K,'jumlah_kg'), kRp=sum(K,'total');
+    const S=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+    S('jel-masuk-kg',mKg.toLocaleString('id-ID')); S('jel-masuk-rp',fmtRp(mRp));
+    S('jel-keluar-kg',kKg.toLocaleString('id-ID')); S('jel-keluar-rp',fmtRp(kRp));
+    S('jel-stok-kg',(mKg-kKg).toLocaleString('id-ID')); S('jel-margin',fmtRp(kRp-mRp));
+    const tm=document.querySelector('#tbl-jmasuk tbody');
+    tm.innerHTML=M.slice(-8).reverse().map(r=>`<tr><td>${escH(jelFmtTgl(r.tanggal))}</td><td>${escH(r.sumber||'-')}</td><td>${escH(r.no_po||'-')}</td><td class="r">${(parseFloat(r.jumlah_kg)||0).toLocaleString('id-ID')} kg</td><td class="r">${fmtRp(r.total)}</td></tr>`).join('')||`<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:14px;">Belum ada data</td></tr>`;
+    const tk=document.querySelector('#tbl-jkeluar tbody');
+    tk.innerHTML=K.slice(-8).reverse().map(r=>`<tr><td>${escH(jelFmtTgl(r.tanggal))}</td><td>${escH(r.tujuan||'-')}</td><td class="r">${(parseFloat(r.jumlah_kg)||0).toLocaleString('id-ID')} kg</td><td class="r">${fmtRp(r.total)}</td></tr>`).join('')||`<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:14px;">Belum ada data</td></tr>`;
+  }catch(e){ console.warn('jelantah load',e); }
+  if(!jelDocReady){ jelDocReady=true; jelDocInit(); }
+}
+function jelDocInit(){
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  const iso=`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+  const st=`${p(d.getDate())}${p(d.getMonth()+1)}${String(d.getFullYear()).slice(2)}`;
+  const set=(id,v)=>{const e=document.getElementById(id);if(e&&!e.value)e.value=v;};
+  set('po-date',iso); set('po-no','PO/JL/'+st); set('inv-date',iso); set('inv-no','INV/GF/'+st);
+}
+function jelCalc(qtyId,hargaId,ppnId){
+  const q=parseFloat(document.getElementById(qtyId).value)||0, h=parseFloat(document.getElementById(hargaId).value)||0;
+  const sub=q*h, ppn=document.getElementById(ppnId).checked?sub*0.11:0;
+  return {q,h,sub,ppn,total:sub+ppn};
+}
+function jelPoCalc(){ const c=jelCalc('po-qty','po-harga','po-ppn'); document.getElementById('po-total').textContent=fmtRp(c.total); return c; }
+function jelInvCalc(){ const c=jelCalc('inv-qty','inv-harga','inv-ppn'); document.getElementById('inv-total').textContent=fmtRp(c.total); return c; }
+function jelPost(table,data){ return fetch(JEL_URL,{method:'POST',mode:'no-cors',headers:{'content-type':'text/plain;charset=utf-8'},body:JSON.stringify({table:table,data:data})}); }
+function jelG(id){ return document.getElementById(id).value; }
+
+function jelPoData(){ const c=jelPoCalc(); return {no_po:jelG('po-no'),tanggal:jelG('po-date'),pemasok:jelG('po-pemasok'),item:jelG('po-item'),jumlah_kg:c.q,harga_per_kg:c.h,subtotal:c.sub,ppn:c.ppn,total:c.total,status:'terbit',catatan:jelG('po-note')}; }
+function jelPoSave(){ const d=jelPoData(); if(!d.jumlah_kg||!d.harga_per_kg){alert('Isi jumlah & harga dulu.');return;} const m=document.getElementById('po-msg'); m.textContent='Menyimpan…'; jelPost('po_garuda',d).then(()=>{ m.textContent='✓ PO tersimpan'; setTimeout(()=>{m.textContent='';initJelantah();},1600); }).catch(()=>{m.textContent='gagal';}); }
+function jelPoPrint(){ const d=jelPoData(); const body=`
+    <div class="meta"><div><b>Kepada:</b><br>${escH(d.pemasok||'Garuda Food')}</div>
+      <div class="r"><b>No. PO:</b> ${escH(d.no_po)}<br><b>Tanggal:</b> ${fmtTglFull(d.tanggal)}</div></div>
+    <table class="doc-t"><thead><tr><th>No</th><th>Item</th><th class="r">Qty (kg)</th><th class="r">Harga/kg</th><th class="r">Jumlah</th></tr></thead>
+    <tbody><tr><td>1</td><td>${escH(d.item)}</td><td class="r">${d.jumlah_kg.toLocaleString('id-ID')}</td><td class="r">${fmtRp(d.harga_per_kg)}</td><td class="r">${fmtRp(d.subtotal)}</td></tr></tbody></table>
+    <div class="tot"><table><tr><td>Subtotal</td><td class="r">${fmtRp(d.subtotal)}</td></tr>${d.ppn?`<tr><td>PPN 11%</td><td class="r">${fmtRp(d.ppn)}</td></tr>`:''}<tr class="grand"><td>TOTAL</td><td class="r">${fmtRp(d.total)}</td></tr></table></div>
+    <div class="terbilang">Terbilang: ${terbilang(d.total)} rupiah</div>
+    ${d.catatan?`<div class="note"><b>Catatan:</b> ${escH(d.catatan)}</div>`:''}
+    <div class="sign"><div>Hormat kami,<br>Pemesan,<br><br><br>(__________________)<br>PT Instech Solusi Nusantara</div><div>Disetujui,<br>Garuda Food,<br><br><br>(__________________)</div></div>`;
+  jelOpenDoc(docShell('PURCHASE ORDER',body)); }
+
+function jelInvData(){ const c=jelInvCalc(); return {no_invoice:jelG('inv-no'),tanggal:jelG('inv-date'),no_po:jelG('inv-po'),item:jelG('inv-item'),jumlah_kg:c.q,harga_per_kg:c.h,subtotal:c.sub,ppn:c.ppn,total:c.total,status:jelG('inv-status'),catatan:jelG('inv-note')}; }
+function jelInvSave(){ const d=jelInvData(); if(!d.jumlah_kg||!d.harga_per_kg){alert('Isi jumlah & harga dulu.');return;} const m=document.getElementById('inv-msg'); m.textContent='Menyimpan…'; jelPost('invoice_garuda',d).then(()=>{ m.textContent='✓ Invoice tersimpan'; setTimeout(()=>{m.textContent='';initJelantah();},1600); }).catch(()=>{m.textContent='gagal';}); }
+function jelInvPrint(){ const d=jelInvData(); const body=`
+    <div class="meta"><div><b>Dari:</b><br>GARUDA FOOD</div>
+      <div class="r"><b>No. Invoice:</b> ${escH(d.no_invoice)}<br><b>Tanggal:</b> ${fmtTglFull(d.tanggal)}${d.no_po?`<br><b>No. PO:</b> ${escH(d.no_po)}`:''}<br><b>Status:</b> ${escH(d.status)}</div></div>
+    <div style="margin:4px 0 2px;"><b>Kepada:</b> PT Instech Solusi Nusantara</div>
+    <table class="doc-t"><thead><tr><th>No</th><th>Item</th><th class="r">Qty (kg)</th><th class="r">Harga/kg</th><th class="r">Jumlah</th></tr></thead>
+    <tbody><tr><td>1</td><td>${escH(d.item)}</td><td class="r">${d.jumlah_kg.toLocaleString('id-ID')}</td><td class="r">${fmtRp(d.harga_per_kg)}</td><td class="r">${fmtRp(d.subtotal)}</td></tr></tbody></table>
+    <div class="tot"><table><tr><td>Subtotal</td><td class="r">${fmtRp(d.subtotal)}</td></tr>${d.ppn?`<tr><td>PPN 11%</td><td class="r">${fmtRp(d.ppn)}</td></tr>`:''}<tr class="grand"><td>TOTAL</td><td class="r">${fmtRp(d.total)}</td></tr></table></div>
+    <div class="terbilang">Terbilang: ${terbilang(d.total)} rupiah</div>
+    ${d.catatan?`<div class="note"><b>Catatan:</b> ${escH(d.catatan)}</div>`:''}`;
+  jelOpenDoc(docShell('INVOICE',body)); }
+
+function jelOpenDoc(html){ const w=window.open('','_blank'); if(!w){alert('Popup diblokir — izinkan popup untuk situs ini.');return;} w.document.write(html); w.document.close(); }
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  LIVE DATA — baca spreadsheet baru via gviz JSONP (bypass CORS)
