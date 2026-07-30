@@ -260,6 +260,14 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);c
 .cal-day.has-data{font-weight:500;color:var(--navy);}
 .cal-day.has-data::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--steel);}
 .cal-day.empty{pointer-events:none;color:transparent;}
+.cal-day.in-week{background:var(--steel3);color:var(--steel);font-weight:600;}
+.cal-day.future{opacity:.45;}
+.mo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.mo-cell{padding:11px 2px;border-radius:var(--r-sm);cursor:pointer;font-size:12px;color:var(--text2);text-align:center;border:1px solid var(--cream3);transition:all .12s;}
+.mo-cell:hover{background:var(--cream2);}
+.mo-cell.today{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:600;}
+.mo-cell.selected{background:var(--steel);color:#fff;border-color:var(--steel);font-weight:500;}
+.pick-hint{font-size:10px;color:var(--text3);margin-top:9px;text-align:center;}
 
 /* ══ AKTIVITAS ══ */
 .act-item{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--cream2);}
@@ -506,7 +514,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--cream);c
           <button class="tab" onclick="ptab('tahunan',this)">Tahunan</button>
         </div>
         <div class="sc" id="prod-cal-card">
-          <div class="sc-head"><div class="sc-title">Pilih Tanggal</div><div class="sc-sub" id="cal-selected-lbl">1 Juni 2026 (hari ini)</div></div>
+          <div class="sc-head"><div class="sc-title" id="cal-title-lbl">Pilih Tanggal</div><div class="sc-sub" id="cal-selected-lbl">–</div></div>
           <div class="sc-body"><div id="cal-wrap"></div></div>
         </div>
         <div id="prod-content"></div>
@@ -882,49 +890,82 @@ function openMod(rk){
 }
 function closeMod(){document.getElementById('modal-ov').classList.remove('open');}
 
-// ── KALENDER ──
+// ── KALENDER / PICKER PERIODE ──
+// Semua periode pakai satu state: selDateStr. periodBounds() yang menerjemahkan
+// jadi rentang harian/mingguan/bulanan/tahunan, jadi picker cuma perlu menggeser
+// selDateStr ke tanggal mana pun di dalam periode yang dipilih.
+const _MO_FULL=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
 function buildCal(){
-  const months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-  const w=document.getElementById('cal-wrap');
-  const first=new Date(calYear,calMonth,1).getDay();
+  const w=document.getElementById('cal-wrap'); if(!w) return;
+  const t=curPTab;
+  const h=document.getElementById('cal-title-lbl');
+  if(h) h.textContent = t==='mingguan'?'Pilih Minggu' : t==='bulanan'?'Pilih Bulan' : t==='tahunan'?'Pilih Tahun' : 'Pilih Tanggal';
+  w.innerHTML = t==='bulanan'?_monthGrid() : t==='tahunan'?_yearGrid() : _dayGrid(t);
+  const l=document.getElementById('cal-selected-lbl');
+  if(l) l.textContent = rangeLabel(selDateStr,t) + (_isNowPeriod(t)?' ('+_nowWord(t)+')':'');
+}
+function _nowWord(t){ return t==='mingguan'?'minggu ini':t==='bulanan'?'bulan ini':t==='tahunan'?'tahun ini':'hari ini'; }
+function _isNowPeriod(t){
+  const b=periodBounds(selDateStr,t), ds=todayInfo().ds;
+  return ds>=b.start&&ds<=b.end;
+}
+function _dayGrid(t){
+  const first=new Date(calYear,calMonth,1).getDay();          // 0=Minggu
   const days=new Date(calYear,calMonth+1,0).getDate();
   const hasData=datesWithData(calYear,calMonth);
-  const _tn=new Date();
-  const _isCurMonth=(calMonth===_tn.getMonth()&&calYear===_tn.getFullYear());
-  const _sp=selDateStr.split('-');
-  const _isSelMonth=(+_sp[0]===calYear&&+_sp[1]===calMonth+1);
-  let html=`<div class="cal-header"><span class="cal-title">${months[calMonth]} ${calYear}</span><div class="cal-nav"><button onclick="calNav(-1)">‹</button><button onclick="calNav(1)">›</button></div></div><div class="cal-grid">`;
+  const today=todayInfo().ds;
+  const wk = t==='mingguan' ? periodBounds(selDateStr,'mingguan') : null;
+  let html=`<div class="cal-header"><span class="cal-title">${_MO_FULL[calMonth]} ${calYear}</span><div class="cal-nav"><button onclick="calNav(-1)">‹</button><button onclick="calNav(1)">›</button></div></div><div class="cal-grid">`;
   ['Min','Sen','Sel','Rab','Kam','Jum','Sab'].forEach(d=>html+=`<div class="cal-day-lbl">${d}</div>`);
   for(let i=0;i<first;i++) html+=`<div class="cal-day empty">0</div>`;
   for(let d=1;d<=days;d++){
-    const isToday=_isCurMonth&&d===_tn.getDate();
-    const isSel=_isSelMonth&&d===+_sp[2];
+    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     let cls='cal-day';
-    if(isToday)cls+=' today';
-    else if(isSel)cls+=' selected';
-    if(hasData.has(d)&&!isToday&&!isSel)cls+=' has-data';
+    if(wk){ if(ds>=wk.start&&ds<=wk.end) cls+=' in-week'; else if(ds===today) cls+=' today'; }
+    else  { if(ds===selDateStr) cls+=' selected';          else if(ds===today) cls+=' today'; }
+    if(!/selected|today|in-week/.test(cls) && hasData.has(d)) cls+=' has-data';
+    if(ds>today) cls+=' future';
     html+=`<div class="${cls}" onclick="selDate(${d})">${d}</div>`;
   }
-  html+=`</div>`;
-  w.innerHTML=html;
+  return html+`</div><div class="pick-hint">${t==='mingguan'?'Klik hari mana pun — seluruh minggunya (Sen–Min) yang terpilih.':'Titik kecil = ada data.'}</div>`;
+}
+function _monthGrid(){
+  const curYM=todayInfo().ds.slice(0,7), selYM=selDateStr.slice(0,7);
+  let html=`<div class="cal-header"><span class="cal-title">${calYear}</span><div class="cal-nav"><button onclick="yrNav(-1)">‹</button><button onclick="yrNav(1)">›</button></div></div><div class="mo-grid">`;
+  for(let i=0;i<12;i++){
+    const ym=`${calYear}-${String(i+1).padStart(2,'0')}`;
+    let cls='mo-cell';
+    if(ym===selYM) cls+=' selected'; else if(ym===curYM) cls+=' today';
+    html+=`<div class="${cls}" onclick="pickMonth(${i})">${_MO[i]}</div>`;
+  }
+  return html+`</div><div class="pick-hint">Panah ‹ › untuk pindah tahun.</div>`;
+}
+function _yearGrid(){
+  const cy=+todayInfo().ds.slice(0,4), sy=+selDateStr.slice(0,4);
+  let html=`<div class="mo-grid">`;
+  for(let y=cy-3;y<=cy+1;y++){
+    let cls='mo-cell';
+    if(y===sy) cls+=' selected'; else if(y===cy) cls+=' today';
+    html+=`<div class="${cls}" onclick="pickYear(${y})">${y}</div>`;
+  }
+  return html+`</div>`;
 }
 function calNav(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}buildCal();}
-function selDate(d){
-  selDay=d;
-  selDateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-  buildCal();
-  const m=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
-  const isTdy=selDateStr===todayInfo().ds;
-  document.getElementById('cal-selected-lbl').textContent=`${d} ${m[calMonth]} ${calYear}${isTdy?' (hari ini)':''}`;
-  if(curPTab==='harian') renderProd('harian');
-}
+function yrNav(dir){calYear+=dir;buildCal();}
+function _setSel(ds){ selDateStr=ds; selDay=+ds.slice(8,10); calYear=+ds.slice(0,4); calMonth=+ds.slice(5,7)-1; buildCal(); renderProd(curPTab); }
+function selDate(d){ _setSel(`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`); }
+function pickMonth(i){ _setSel(`${calYear}-${String(i+1).padStart(2,'0')}-01`); }
+function pickYear(y){ _setSel(`${y}-01-01`); }
 
 // ── PRODUKSI ──
 function ptab(t,btn){
   curPTab=t;
   document.querySelectorAll('#page-produksi .tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('prod-cal-card').style.display=t==='harian'?'block':'none';
+  document.getElementById('prod-cal-card').style.display='block';
+  calYear=+selDateStr.slice(0,4); calMonth=+selDateStr.slice(5,7)-1;   // kembali ke bulan periode terpilih
+  buildCal();
   renderProd(t);
 }
 
